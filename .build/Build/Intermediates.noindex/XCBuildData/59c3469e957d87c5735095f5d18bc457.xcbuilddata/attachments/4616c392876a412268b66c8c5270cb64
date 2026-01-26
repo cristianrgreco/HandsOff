@@ -1,0 +1,99 @@
+{
+  "" : {
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOff-primary.dia",
+    "emit-module-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOff-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOff-primary-emit-module.dia",
+    "pch" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOff-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOff-primary.swiftdeps"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/AppState.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AppState.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AppState.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AppState.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AppState.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AppState.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AppState.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AppState.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AppState~partial.swiftmodule"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/HandsOffApp.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOffApp.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOffApp.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOffApp.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOffApp.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOffApp.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOffApp.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOffApp.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/HandsOffApp~partial.swiftmodule"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/Models/SettingsStore.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsStore.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsStore.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsStore.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsStore.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsStore.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsStore.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsStore.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsStore~partial.swiftmodule"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/Models/StatsStore.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsStore.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsStore.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsStore.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsStore.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsStore.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsStore.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsStore.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsStore~partial.swiftmodule"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/Services/AlertManager.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AlertManager.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AlertManager.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AlertManager.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AlertManager.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AlertManager.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AlertManager.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AlertManager.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/AlertManager~partial.swiftmodule"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/Services/DetectionEngine.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/DetectionEngine.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/DetectionEngine.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/DetectionEngine.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/DetectionEngine.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/DetectionEngine.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/DetectionEngine.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/DetectionEngine.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/DetectionEngine~partial.swiftmodule"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/Views/MenuBarView.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/MenuBarView.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/MenuBarView.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/MenuBarView.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/MenuBarView.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/MenuBarView.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/MenuBarView.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/MenuBarView.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/MenuBarView~partial.swiftmodule"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/Views/SettingsView.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsView.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsView.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsView.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsView.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsView.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/SettingsView~partial.swiftmodule"
+  },
+  "/Users/cristian/Documents/code/personal/stop-touching-your-face/HandsOff/Views/StatsView.swift" : {
+    "const-values" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsView.swiftconstvalues",
+    "dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsView.d",
+    "diagnostics" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsView.dia",
+    "index-unit-output-path" : "/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsView.o",
+    "llvm-bc" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsView.bc",
+    "object" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsView.o",
+    "swift-dependencies" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsView.swiftdeps",
+    "swiftmodule" : "/Users/cristian/Documents/code/personal/stop-touching-your-face/.build/Build/Intermediates.noindex/HandsOff.build/Debug/HandsOff.build/Objects-normal/arm64/StatsView~partial.swiftmodule"
+  }
+}
