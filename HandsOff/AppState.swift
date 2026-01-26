@@ -105,14 +105,27 @@ final class AppState: ObservableObject {
         cameraStore.$devices
             .sink { [weak self] _ in
                 guard let self else { return }
-                guard !self.isMonitoring, !self.isStarting else { return }
-                guard !self.cameraStore.devices.isEmpty else { return }
+                let devices = self.cameraStore.devices
                 let storedID = self.settings.cameraID
                 let isStoredAvailable = storedID.flatMap { id in
-                    self.cameraStore.devices.first(where: { $0.uniqueID == id })
+                    devices.first(where: { $0.uniqueID == id })
                 } != nil
+
+                if devices.isEmpty {
+                    if storedID != nil {
+                        self.settings.cameraID = nil
+                    }
+                    if self.isMonitoring && !self.isStarting {
+                        self.stopMonitoring()
+                    }
+                    return
+                }
+
                 guard storedID == nil || !isStoredAvailable else { return }
-                self.settings.cameraID = self.cameraStore.preferredDeviceID(storedID: storedID)
+                let preferred = self.cameraStore.preferredDeviceID(storedID: storedID)
+                if preferred != storedID {
+                    self.settings.cameraID = preferred
+                }
             }
             .store(in: &cancellables)
 
