@@ -3,6 +3,7 @@ Features
 UI/UX improvements
 
 - App icon
+- Pipeline to generate a release
 
 Bugs
 

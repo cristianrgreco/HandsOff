@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1C8D9D4C0E9C8F6B6B5F4F4D /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C8D9D4B0E9C8F6B6B5F4F4D /* LoginItemManager.swift */; };
+		20F84713F8195386F8D04B3F /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B38DA9A0037B00BC83106CB1 /* LoginItemManager.swift */; };
 		4C5B7AA082370D55E83E0E02 /* PreviewFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7790AC94586ED71E596273A /* PreviewFrameView.swift */; };
 		4DBD2BC691C610F0FC78D1FB /* DetectionOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */; };
 		84BE402E1FD3ED11F4CFF467 /* BlurOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C81AB35F8A83D3D8415174 /* BlurOverlayController.swift */; };
@@ -24,7 +24,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1C8D9D4B0E9C8F6B6B5F4F4D /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
 		221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionOverlayView.swift; sourceTree = "<group>"; };
 		2223377E43D5C63818771A08 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		31E88109BC34A9A193DF2415 /* CameraStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStore.swift; sourceTree = "<group>"; };
@@ -37,6 +36,7 @@
 		73EAB9E017211931C90FF20B /* DetectionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngine.swift; sourceTree = "<group>"; };
 		9676E8E71BFD04E8A3B6FEF7 /* HandsOff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HandsOff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0DF28F9809C1ABF7DD587DF /* StatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStore.swift; sourceTree = "<group>"; };
+		B38DA9A0037B00BC83106CB1 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
 		BBB87CFAFE32C538E0CACAE7 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		C3EA664A2C98A450CF8C99A5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E0C81AB35F8A83D3D8415174 /* BlurOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurOverlayController.swift; sourceTree = "<group>"; };
@@ -97,7 +97,7 @@
 			children = (
 				340EA053A14912C60246F6E4 /* AlertManager.swift */,
 				73EAB9E017211931C90FF20B /* DetectionEngine.swift */,
-				1C8D9D4B0E9C8F6B6B5F4F4D /* LoginItemManager.swift */,
+				B38DA9A0037B00BC83106CB1 /* LoginItemManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -175,7 +175,7 @@
 				EF19F739A67B5852CADF233C /* DetectionEngine.swift in Sources */,
 				4DBD2BC691C610F0FC78D1FB /* DetectionOverlayView.swift in Sources */,
 				8991EE10DBCD567C0ECCC44B /* HandsOffApp.swift in Sources */,
-				1C8D9D4C0E9C8F6B6B5F4F4D /* LoginItemManager.swift in Sources */,
+				20F84713F8195386F8D04B3F /* LoginItemManager.swift in Sources */,
 				FB7B056F4AC1FA7A229111D4 /* MenuBarView.swift in Sources */,
 				4C5B7AA082370D55E83E0E02 /* PreviewFrameView.swift in Sources */,
 				A00D4B1F6544897E3696827D /* SettingsStore.swift in Sources */,
