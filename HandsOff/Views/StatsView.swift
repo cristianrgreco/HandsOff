@@ -1,31 +1,57 @@
+import Charts
 import SwiftUI
 
 struct StatsView: View {
     @ObservedObject var stats: StatsStore
+    @State private var range: AlertRange = .hour
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Today")
+            Text("Stats")
                 .font(.subheadline)
 
             HStack {
-                Text("Alerts")
+                Text("Today")
                 Spacer()
                 Text("\(stats.alertsToday)")
             }
 
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                HStack {
-                    Text("Monitoring")
-                    Spacer()
-                    Text(stats.formattedMonitoringTime)
+            Divider()
+
+            Picker("Range", selection: $range) {
+                ForEach(AlertRange.allCases) { option in
+                    Text(option.label).tag(option)
                 }
             }
+            .pickerStyle(.segmented)
 
-            HStack {
-                Text("Touch-free streak")
-                Spacer()
-                Text("\(stats.touchFreeStreakDays) days")
+            TimelineView(.periodic(from: .now, by: range.refreshInterval)) { context in
+                let buckets = stats.alertBuckets(for: range, now: context.date)
+                let points = buckets.filter { $0.count > 0 }
+                let maxCount = max(1, buckets.map(\.count).max() ?? 1)
+
+                Chart(points) { bucket in
+                    PointMark(
+                        x: .value("Time", bucket.date),
+                        y: .value("Touches", bucket.count)
+                    )
+                .symbolSize(20)
+            }
+            .chartYScale(domain: 0...maxCount)
+            .chartXAxis {
+                if range == .hour {
+                    AxisMarks(values: .automatic(desiredCount: 3)) { _ in
+                        AxisGridLine()
+                        AxisTick()
+                    }
+                } else {
+                    AxisMarks(values: .automatic(desiredCount: 3))
+                }
+            }
+            .chartYAxis {
+                AxisMarks(position: .leading)
+            }
+                .frame(height: 120)
             }
         }
     }
