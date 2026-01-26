@@ -39,7 +39,6 @@ struct StatsView: View {
                         .accessibilityLabel("Reset stats")
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
                 .help("Reset stats")
             }
 
@@ -56,16 +55,6 @@ struct StatsView: View {
                 .symbolSize(20)
             }
             .chartYScale(domain: 0...maxCount)
-            .chartXAxis {
-                if range == .hour {
-                    AxisMarks(values: .automatic(desiredCount: 3)) { _ in
-                        AxisGridLine()
-                        AxisTick()
-                    }
-                } else {
-                    AxisMarks(values: .automatic(desiredCount: 3))
-                }
-            }
             .chartYAxis {
                 AxisMarks(position: .leading)
             }
