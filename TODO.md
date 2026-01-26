@@ -2,18 +2,14 @@ Features
 
 UI/UX improvements
 
+- App icon
 - Continuous beep sound customizability?
-- Confirm/adjust settings defaults.
-- HandsOff app not running in Dock?
+- Replace blur with red screen flash?
 
 Bugs
 
 - Face bounding box isn't quite right on x-axis. It s offset a bit too much to the left.
 - Stats dots change when camera stopped/started repeatedly.
-
-Not possible?
-
-- Keep menu bar item open when clicking 'Start monitoring'?
 
 Testing
 

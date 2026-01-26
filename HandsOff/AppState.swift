@@ -19,6 +19,7 @@ final class AppState: ObservableObject {
     private let detectionEngine: DetectionEngine
     private let blurOverlay = BlurOverlayController()
     private let loginItemManager = LoginItemManager()
+    private let stateDefaults = UserDefaults.standard
     private var monitoringActivity: NSObjectProtocol?
     private var isStarting = false
     private var isUpdatingLoginItem = false
@@ -50,6 +51,7 @@ final class AppState: ObservableObject {
                 }
             }
         )
+        migrateResumeMonitoringStateIfNeeded()
 
         detectionEngine.setObservationHandler { [weak self] observation in
             guard let self else { return }
@@ -138,7 +140,7 @@ final class AppState: ObservableObject {
 
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            guard self.settings.resumeMonitoringOnLaunch else { return }
+            guard self.shouldResumeMonitoringOnLaunch else { return }
             self.startMonitoring()
         }
     }
@@ -176,7 +178,7 @@ final class AppState: ObservableObject {
 
             self.isMonitoring = true
             self.resetTouchState()
-            self.settings.resumeMonitoringOnLaunch = true
+            self.stateDefaults.set(true, forKey: Self.resumeMonitoringKey)
             self.stats.beginMonitoring()
             self.beginMonitoringActivity()
         }
@@ -189,7 +191,7 @@ final class AppState: ObservableObject {
         endMonitoringActivity()
         blurOverlay.hide()
         alertManager.stopContinuous()
-        settings.resumeMonitoringOnLaunch = false
+        stateDefaults.set(false, forKey: Self.resumeMonitoringKey)
         resetTouchState()
         isMonitoring = false
     }
@@ -257,6 +259,21 @@ final class AppState: ObservableObject {
         isTouching = false
         touchReleaseStart = nil
     }
+
+    private var shouldResumeMonitoringOnLaunch: Bool {
+        stateDefaults.bool(forKey: Self.resumeMonitoringKey)
+    }
+
+    private func migrateResumeMonitoringStateIfNeeded() {
+        guard stateDefaults.object(forKey: Self.resumeMonitoringKey) == nil else { return }
+        guard stateDefaults.object(forKey: Self.legacyResumeMonitoringKey) != nil else { return }
+        let legacyValue = stateDefaults.bool(forKey: Self.legacyResumeMonitoringKey)
+        stateDefaults.set(legacyValue, forKey: Self.resumeMonitoringKey)
+        stateDefaults.removeObject(forKey: Self.legacyResumeMonitoringKey)
+    }
+
+    private static let resumeMonitoringKey = "state.resumeMonitoringOnLaunch"
+    private static let legacyResumeMonitoringKey = "settings.resumeMonitoringOnLaunch"
 
     func openCameraSettings() {
         guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") else {

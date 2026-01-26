@@ -75,7 +75,6 @@ final class SettingsStore: ObservableObject {
     @Published var blurOnTouch: Bool { didSet { save() } }
     @Published var blurIntensity: Double { didSet { save() } }
     @Published var startAtLogin: Bool { didSet { save() } }
-    @Published var resumeMonitoringOnLaunch: Bool { didSet { save() } }
 
     private let defaults: UserDefaults
 
@@ -103,10 +102,9 @@ final class SettingsStore: ObservableObject {
         if defaults.object(forKey: Keys.blurIntensity) != nil {
             self.blurIntensity = defaults.double(forKey: Keys.blurIntensity)
         } else {
-            self.blurIntensity = 0.75
+            self.blurIntensity = 0.6
         }
         self.startAtLogin = defaults.bool(forKey: Keys.startAtLogin)
-        self.resumeMonitoringOnLaunch = defaults.bool(forKey: Keys.resumeMonitoringOnLaunch)
     }
 
     private func save() {
@@ -116,7 +114,6 @@ final class SettingsStore: ObservableObject {
         defaults.set(blurOnTouch, forKey: Keys.blurOnTouch)
         defaults.set(blurIntensity, forKey: Keys.blurIntensity)
         defaults.set(startAtLogin, forKey: Keys.startAtLogin)
-        defaults.set(resumeMonitoringOnLaunch, forKey: Keys.resumeMonitoringOnLaunch)
     }
 
     private enum Keys {
@@ -127,6 +124,5 @@ final class SettingsStore: ObservableObject {
         static let blurOnTouch = "settings.blurOnTouch"
         static let blurIntensity = "settings.blurIntensity"
         static let startAtLogin = "settings.startAtLogin"
-        static let resumeMonitoringOnLaunch = "settings.resumeMonitoringOnLaunch"
     }
 }
