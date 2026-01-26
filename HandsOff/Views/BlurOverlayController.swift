@@ -4,7 +4,10 @@ final class BlurOverlayController {
     private var windows: [NSWindow] = []
     private var isVisible = false
     private var screenObserver: NSObjectProtocol?
-    private var blurAlpha: CGFloat = 0.75
+    private var flashTimer: Timer?
+    private var isFlashOn = false
+    private let flashInterval: TimeInterval = 0.5
+    private let flashAlpha: CGFloat = 0.4
 
     init() {
         screenObserver = NotificationCenter.default.addObserver(
@@ -28,18 +31,14 @@ final class BlurOverlayController {
         isVisible = true
         ensureWindows()
         windows.forEach { $0.orderFrontRegardless() }
+        startFlashing()
     }
 
     func hide() {
         guard isVisible else { return }
         isVisible = false
+        stopFlashing()
         windows.forEach { $0.orderOut(nil) }
-    }
-
-    func setIntensity(_ value: Double) {
-        let clamped = max(0.0, min(1.0, value))
-        blurAlpha = CGFloat(clamped)
-        windows.forEach { $0.alphaValue = blurAlpha }
     }
 
     private func ensureWindows() {
@@ -53,6 +52,7 @@ final class BlurOverlayController {
         windows = NSScreen.screens.map { makeWindow(for: $0) }
         if isVisible {
             windows.forEach { $0.orderFrontRegardless() }
+            applyFlashState()
         }
     }
 
@@ -65,21 +65,39 @@ final class BlurOverlayController {
             screen: screen
         )
         window.isOpaque = false
-        window.backgroundColor = .clear
-        window.alphaValue = blurAlpha
+        window.backgroundColor = .systemRed
+        window.alphaValue = 0.0
         window.ignoresMouseEvents = true
         window.hasShadow = false
         window.level = .screenSaver
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         window.isReleasedWhenClosed = false
-
-        let effectView = NSVisualEffectView(frame: window.contentView?.bounds ?? screen.frame)
-        effectView.autoresizingMask = [.width, .height]
-        effectView.blendingMode = .behindWindow
-        effectView.material = .fullScreenUI
-        effectView.state = .active
-        window.contentView = effectView
-
         return window
+    }
+
+    private func startFlashing() {
+        stopFlashing()
+        isFlashOn = true
+        applyFlashState()
+        flashTimer = Timer.scheduledTimer(withTimeInterval: flashInterval, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            self.isFlashOn.toggle()
+            self.applyFlashState()
+        }
+        if let flashTimer {
+            RunLoop.main.add(flashTimer, forMode: .common)
+        }
+    }
+
+    private func stopFlashing() {
+        flashTimer?.invalidate()
+        flashTimer = nil
+        isFlashOn = false
+        applyFlashState()
+    }
+
+    private func applyFlashState() {
+        let alpha = isFlashOn ? flashAlpha : 0.0
+        windows.forEach { $0.alphaValue = alpha }
     }
 }

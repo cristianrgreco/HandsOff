@@ -72,8 +72,7 @@ final class SettingsStore: ObservableObject {
     @Published var alertSoundEnabled: Bool { didSet { save() } }
     @Published var alertBannerEnabled: Bool { didSet { save() } }
     @Published var cameraID: String? { didSet { save() } }
-    @Published var blurOnTouch: Bool { didSet { save() } }
-    @Published var blurIntensity: Double { didSet { save() } }
+    @Published var flashScreenOnTouch: Bool { didSet { save() } }
     @Published var startAtLogin: Bool { didSet { save() } }
 
     private let defaults: UserDefaults
@@ -98,11 +97,13 @@ final class SettingsStore: ObservableObject {
         }
 
         self.cameraID = defaults.string(forKey: Keys.cameraID)
-        self.blurOnTouch = defaults.bool(forKey: Keys.blurOnTouch)
-        if defaults.object(forKey: Keys.blurIntensity) != nil {
-            self.blurIntensity = defaults.double(forKey: Keys.blurIntensity)
+        if defaults.object(forKey: Keys.flashScreenOnTouch) != nil {
+            self.flashScreenOnTouch = defaults.bool(forKey: Keys.flashScreenOnTouch)
+        } else if defaults.object(forKey: Keys.blurOnTouch) != nil {
+            self.flashScreenOnTouch = defaults.bool(forKey: Keys.blurOnTouch)
+            defaults.removeObject(forKey: Keys.blurOnTouch)
         } else {
-            self.blurIntensity = 0.6
+            self.flashScreenOnTouch = true
         }
         self.startAtLogin = defaults.bool(forKey: Keys.startAtLogin)
     }
@@ -111,8 +112,7 @@ final class SettingsStore: ObservableObject {
         defaults.set(alertSoundEnabled, forKey: Keys.alertSoundEnabled)
         defaults.set(alertBannerEnabled, forKey: Keys.alertBannerEnabled)
         defaults.set(cameraID, forKey: Keys.cameraID)
-        defaults.set(blurOnTouch, forKey: Keys.blurOnTouch)
-        defaults.set(blurIntensity, forKey: Keys.blurIntensity)
+        defaults.set(flashScreenOnTouch, forKey: Keys.flashScreenOnTouch)
         defaults.set(startAtLogin, forKey: Keys.startAtLogin)
     }
 
@@ -121,8 +121,8 @@ final class SettingsStore: ObservableObject {
         static let alertSoundEnabled = "settings.alertSoundEnabled"
         static let alertBannerEnabled = "settings.alertBannerEnabled"
         static let cameraID = "settings.cameraID"
+        static let flashScreenOnTouch = "settings.flashScreenOnTouch"
         static let blurOnTouch = "settings.blurOnTouch"
-        static let blurIntensity = "settings.blurIntensity"
         static let startAtLogin = "settings.startAtLogin"
     }
 }

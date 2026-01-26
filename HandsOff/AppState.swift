@@ -65,8 +65,6 @@ final class AppState: ObservableObject {
             self?.previewImage = image
         }
 
-        blurOverlay.setIntensity(settings.blurIntensity)
-
         settings.$alertBannerEnabled
             .sink { [weak alertManager] enabled in
                 if enabled {
@@ -75,17 +73,11 @@ final class AppState: ObservableObject {
             }
             .store(in: &cancellables)
 
-        settings.$blurOnTouch
+        settings.$flashScreenOnTouch
             .sink { [weak self] enabled in
                 if !enabled {
                     self?.blurOverlay.hide()
                 }
-            }
-            .store(in: &cancellables)
-
-        settings.$blurIntensity
-            .sink { [weak self] value in
-                self?.blurOverlay.setIntensity(value)
             }
             .store(in: &cancellables)
 
@@ -209,7 +201,7 @@ final class AppState: ObservableObject {
     }
 
     private func updateBlurOverlay(isHit: Bool) {
-        guard isMonitoring, settings.blurOnTouch else {
+        guard isMonitoring, settings.flashScreenOnTouch else {
             blurOverlay.hide()
             return
         }
