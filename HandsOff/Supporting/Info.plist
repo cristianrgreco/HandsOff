@@ -22,5 +22,7 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>HandsOff uses the camera to detect when your hand approaches your face.</string>
+	<key>LSUIElement</key>
+	<true/>
 </dict>
 </plist>

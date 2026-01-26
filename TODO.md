@@ -4,20 +4,11 @@ UI/UX improvements
 
 - Continuous beep sound customizability?
 - Confirm/adjust settings defaults.
-- Group settings a bit better? E.g. no point choosing sound when continuous plays its own
 - HandsOff app not running in Dock?
-
-- Blur background red, or some other configurable color? Atm the white is a bit too strong in dark mode.
-
-- Sensitivity should just be hardcoded to low I think, why should it not be as accurate as possible?
-- Cooldown also just hardcoded to 1s for now I think. If the alert is annoying then what are we doing here?
-
-- Should the whole menu be wider now that it's quite tall?
 
 Bugs
 
 - Face bounding box isn't quite right on x-axis. It s offset a bit too much to the left.
-- Stats grid is sometimes showing x-axis labels.
 - Stats dots change when camera stopped/started repeatedly.
 
 Not possible?
