@@ -46,10 +46,16 @@ final class AppState: ObservableObject {
                 )
             },
             onTrigger: { [weak alertManager, weak settings] in
-                if let alertType = settings?.alertType {
-                    let alertSound = settings?.alertSound ?? .ping
-                    alertManager?.trigger(alertType: alertType, alertSound: alertSound)
+                guard let settings else { return }
+                let alertSound = settings.alertSound
+                let alertType = settings.alertType
+                if settings.soundMode == .continuous {
+                    if alertType.usesBanner {
+                        alertManager?.trigger(alertType: .banner, alertSound: alertSound)
+                    }
+                    return
                 }
+                alertManager?.trigger(alertType: alertType, alertSound: alertSound)
             }
         )
 
@@ -182,6 +188,7 @@ final class AppState: ObservableObject {
         stats.endMonitoring()
         endMonitoringActivity()
         blurOverlay.hide()
+        alertManager.stopContinuous()
         settings.resumeMonitoringOnLaunch = false
         resetTouchState()
         isMonitoring = false
@@ -214,6 +221,7 @@ final class AppState: ObservableObject {
     private func updateTouchState(isHit: Bool) {
         guard isMonitoring else { return }
         let now = CACurrentMediaTime()
+        updateContinuousSound(isHit: isHit)
 
         if isHit {
             touchReleaseStart = nil
@@ -230,6 +238,18 @@ final class AppState: ObservableObject {
             } else {
                 touchReleaseStart = now
             }
+        }
+    }
+
+    private func updateContinuousSound(isHit: Bool) {
+        guard settings.alertType.usesSound, settings.soundMode == .continuous else {
+            alertManager.stopContinuous()
+            return
+        }
+        if isHit {
+            alertManager.startContinuous()
+        } else {
+            alertManager.stopContinuous()
         }
     }
 

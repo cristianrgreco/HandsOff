@@ -62,6 +62,10 @@ enum AlertType: String, CaseIterable, Identifiable {
     var usesBanner: Bool {
         self == .banner || self == .both
     }
+
+    var usesSound: Bool {
+        self == .chime || self == .both
+    }
 }
 
 enum AlertSound: String, CaseIterable, Identifiable {
@@ -88,10 +92,25 @@ enum AlertSound: String, CaseIterable, Identifiable {
     }
 }
 
+enum SoundMode: String, CaseIterable, Identifiable {
+    case repeatAlert = "repeat"
+    case continuous = "continuous"
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .repeatAlert: return "Repeat"
+        case .continuous: return "Continuous"
+        }
+    }
+}
+
 final class SettingsStore: ObservableObject {
     @Published var sensitivity: Sensitivity { didSet { save() } }
     @Published var alertType: AlertType { didSet { save() } }
     @Published var alertSound: AlertSound { didSet { save() } }
+    @Published var soundMode: SoundMode { didSet { save() } }
     @Published var cooldownSeconds: Double { didSet { save() } }
     @Published var cameraID: String? { didSet { save() } }
     @Published var blurOnTouch: Bool { didSet { save() } }
@@ -117,6 +136,9 @@ final class SettingsStore: ObservableObject {
         let soundRaw = defaults.string(forKey: Keys.alertSound) ?? AlertSound.ping.rawValue
         self.alertSound = AlertSound(rawValue: soundRaw) ?? .ping
 
+        let soundModeRaw = defaults.string(forKey: Keys.soundMode) ?? SoundMode.repeatAlert.rawValue
+        self.soundMode = SoundMode(rawValue: soundModeRaw) ?? .repeatAlert
+
         let cooldownValue = defaults.double(forKey: Keys.cooldownSeconds)
         self.cooldownSeconds = cooldownValue > 0 ? cooldownValue : 10
 
@@ -135,6 +157,7 @@ final class SettingsStore: ObservableObject {
         defaults.set(sensitivity.rawValue, forKey: Keys.sensitivity)
         defaults.set(alertType.rawValue, forKey: Keys.alertType)
         defaults.set(alertSound.rawValue, forKey: Keys.alertSound)
+        defaults.set(soundMode.rawValue, forKey: Keys.soundMode)
         defaults.set(cooldownSeconds, forKey: Keys.cooldownSeconds)
         defaults.set(cameraID, forKey: Keys.cameraID)
         defaults.set(blurOnTouch, forKey: Keys.blurOnTouch)
@@ -147,6 +170,7 @@ final class SettingsStore: ObservableObject {
         static let sensitivity = "settings.sensitivity"
         static let alertType = "settings.alertType"
         static let alertSound = "settings.alertSound"
+        static let soundMode = "settings.soundMode"
         static let cooldownSeconds = "settings.cooldownSeconds"
         static let cameraID = "settings.cameraID"
         static let blurOnTouch = "settings.blurOnTouch"

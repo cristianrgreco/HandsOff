@@ -38,6 +38,15 @@ struct SettingsView: View {
                 }
             }
             .pickerStyle(.menu)
+            .disabled(!settings.alertType.usesSound)
+
+            Picker("Sound mode", selection: $settings.soundMode) {
+                ForEach(SoundMode.allCases) { mode in
+                    Text(mode.label).tag(mode)
+                }
+            }
+            .pickerStyle(.menu)
+            .disabled(!settings.alertType.usesSound)
 
             Picker("Cooldown", selection: $settings.cooldownSeconds) {
                 ForEach(cooldownOptions, id: \.value) { option in
