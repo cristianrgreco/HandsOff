@@ -8,12 +8,17 @@ struct StatsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Stats")
-                .font(.subheadline)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
 
             HStack {
                 Text("Today")
                 Spacer()
                 Text("\(stats.alertsToday)")
+                    .font(.title3)
+                    .fontDesign(.rounded)
+                    .monospacedDigit()
             }
 
             HStack(spacing: 8) {
@@ -32,7 +37,7 @@ struct StatsView: View {
                         .accessibilityLabel("Reset stats")
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.regular)
+                .controlSize(.small)
                 .help("Reset stats")
             }
 
