@@ -1,22 +1,34 @@
-Hands Off (Mac) - Dev Notes
+# Hands Off (Mac)
 
-This repo contains the Swift source files for the macOS menu bar app.
+Hands Off is a macOS **menu bar** app that detects when your hand approaches your face and nudges you to stop touching your face.
 
-Quick setup in Xcode
-1) File -> New -> Project -> App (macOS).
-2) Name: HandsOff (or your preferred name). Interface: SwiftUI. Language: Swift.
-3) Set Deployment Target to macOS 13.0.
-4) Add the files from `HandsOff/` into the Xcode project.
-5) Set the app's Info.plist to include `NSCameraUsageDescription`
-   (see `HandsOff/Supporting/Info.plist`).
-6) Enable App Sandbox + Camera in Signing & Capabilities
-   (see `HandsOff/Supporting/HandsOff.entitlements`).
-7) Build and run.
+## What it does
+- Runs in the menu bar and monitors when enabled.
+- Detects face + hands locally using the webcam.
+- Alerts via sound, notification banner, and/or a flashing red screen.
+- Shows simple stats for recent touches.
 
-Useful CLI commands
-- Generate the Xcode project: `xcodegen`
-- Build the app: `xcodebuild -project HandsOff.xcodeproj -scheme HandsOff -configuration Debug -destination 'platform=macOS' -derivedDataPath .build build`
-- Launch the built app: `open .build/Build/Products/Debug/HandsOff.app`
-- Relaunch (kill + open): `killall HandsOff || true` then `open .build/Build/Products/Debug/HandsOff.app`
-- Always rebuild + relaunch after changes: run the build command, then the relaunch command above.
-- One-time Xcode setup (if xcodebuild fails): `sudo xcodebuild -runFirstLaunch`
+## Privacy
+- On-device processing only.
+- No video/images are stored or uploaded.
+
+## Requirements
+- macOS 13+
+- Xcode + Command Line Tools
+- `xcodegen` (install via Homebrew: `brew install xcodegen`)
+
+## Build and run locally
+```bash
+./scripts/gen_project.sh
+./scripts/build.sh
+./scripts/run.sh
+```
+
+For fast iteration:
+```bash
+./scripts/build_and_run.sh
+```
+
+## Notes
+- The app will request camera permission on first run.
+- If you connect/disconnect webcams, the app switches to the next available camera.
