@@ -28,7 +28,9 @@ struct StatsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(maxWidth: .infinity)
+                .fixedSize()
+
+                Spacer()
 
                 Button {
                     stats.resetAll()
@@ -69,6 +71,7 @@ struct StatsView: View {
             }
                 .frame(height: 120)
             }
+            .padding(4)
         }
     }
 }

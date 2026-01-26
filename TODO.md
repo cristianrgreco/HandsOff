@@ -12,14 +12,14 @@ UI/UX improvements
 - Sensitivity should just be hardcoded to low I think, why should it not be as accurate as possible?
 - Cooldown also just hardcoded to 1s for now I think. If the alert is annoying then what are we doing here?
 
-- Instead of 'start monitoring' button, can we play play/pause buttons next to the title to save space? Perhaps Quit button next to it?
 - Can the stats picker be left aligned?
 - Should the whole menu be wider now that it's quite tall?
 
 Bugs
 
 - Face bounding box isn't quite right on x-axis. It s offset a bit too much to the left.
-- Stats grid is sometimes showing x-axis labels
+- Stats grid is sometimes showing x-axis labels.
+- Stats dots change when camera stopped/started repeatedly.
 
 Not possible?
 
