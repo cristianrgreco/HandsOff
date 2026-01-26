@@ -292,7 +292,6 @@ final class DetectionEngine: NSObject {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         emitPreview(pixelBuffer, now: now)
 
-        let settings = settingsProvider()
         let faceRequest = VNDetectFaceLandmarksRequest()
         let handRequest = VNDetectHumanHandPoseRequest()
         handRequest.maximumHandCount = 2
@@ -308,7 +307,6 @@ final class DetectionEngine: NSObject {
         let faceBox = resolveFaceBox(
             face: faceRequest.results?.first,
             handPoints: points,
-            settings: settings,
             now: now
         )
 
@@ -404,7 +402,6 @@ final class DetectionEngine: NSObject {
     private func resolveFaceBox(
         face: VNFaceObservation?,
         handPoints: [CGPoint],
-        settings: DetectionSettings,
         now: CFTimeInterval
     ) -> CGRect? {
         if let face {

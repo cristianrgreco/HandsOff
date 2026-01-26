@@ -14,19 +14,6 @@ final class AlertManager {
         }
     }
 
-    func trigger(alertType: AlertType) {
-        switch alertType {
-        case .off:
-            return
-        case .chime:
-            return
-        case .banner:
-            postBanner()
-        case .both:
-            postBanner()
-        }
-    }
-
     func startContinuous() {
         tonePlayer.start()
     }
@@ -35,7 +22,7 @@ final class AlertManager {
         tonePlayer.stop()
     }
 
-    private func postBanner() {
+    func postBanner() {
         let content = UNMutableNotificationContent()
         content.title = "Hands Off"
         content.body = "Hands near face."

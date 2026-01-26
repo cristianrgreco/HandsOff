@@ -5,22 +5,19 @@ struct SettingsView: View {
     @ObservedObject var cameraStore: CameraStore
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             Text("Settings")
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
 
+            sectionHeader("Camera")
             cameraPicker
 
-            Picker("Alert", selection: $settings.alertType) {
-                ForEach(AlertType.allCases) { alert in
-                    Text(alert.label).tag(alert)
-                }
-            }
-            .pickerStyle(.menu)
-
-            Toggle("Blur screen on touch", isOn: $settings.blurOnTouch)
+            sectionHeader("Alerts")
+            Toggle("Sound", isOn: $settings.alertSoundEnabled)
+            Toggle("Banner", isOn: $settings.alertBannerEnabled)
+            Toggle("Blur screen", isOn: $settings.blurOnTouch)
             HStack {
                 Text("Blur intensity")
                 Slider(value: $settings.blurIntensity, in: 0.25...0.9, step: 0.05)
@@ -31,8 +28,15 @@ struct SettingsView: View {
             }
             .disabled(!settings.blurOnTouch)
 
+            sectionHeader("System")
             Toggle("Start at login", isOn: $settings.startAtLogin)
         }
+    }
+
+    private func sectionHeader(_ text: String) -> some View {
+        Text(text)
+            .font(.caption2)
+            .foregroundStyle(.secondary)
     }
 
     @ViewBuilder

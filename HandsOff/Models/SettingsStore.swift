@@ -69,7 +69,8 @@ enum AlertType: String, CaseIterable, Identifiable {
 }
 
 final class SettingsStore: ObservableObject {
-    @Published var alertType: AlertType { didSet { save() } }
+    @Published var alertSoundEnabled: Bool { didSet { save() } }
+    @Published var alertBannerEnabled: Bool { didSet { save() } }
     @Published var cameraID: String? { didSet { save() } }
     @Published var blurOnTouch: Bool { didSet { save() } }
     @Published var blurIntensity: Double { didSet { save() } }
@@ -81,8 +82,21 @@ final class SettingsStore: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
-        let alertRaw = defaults.string(forKey: Keys.alertType) ?? AlertType.chime.rawValue
-        self.alertType = AlertType(rawValue: alertRaw) ?? .chime
+        let legacyAlertType = defaults.string(forKey: Keys.alertType).flatMap { AlertType(rawValue: $0) }
+        if defaults.object(forKey: Keys.alertSoundEnabled) != nil {
+            self.alertSoundEnabled = defaults.bool(forKey: Keys.alertSoundEnabled)
+        } else if let legacyAlertType {
+            self.alertSoundEnabled = legacyAlertType.usesSound
+        } else {
+            self.alertSoundEnabled = true
+        }
+        if defaults.object(forKey: Keys.alertBannerEnabled) != nil {
+            self.alertBannerEnabled = defaults.bool(forKey: Keys.alertBannerEnabled)
+        } else if let legacyAlertType {
+            self.alertBannerEnabled = legacyAlertType.usesBanner
+        } else {
+            self.alertBannerEnabled = false
+        }
 
         self.cameraID = defaults.string(forKey: Keys.cameraID)
         self.blurOnTouch = defaults.bool(forKey: Keys.blurOnTouch)
@@ -96,7 +110,8 @@ final class SettingsStore: ObservableObject {
     }
 
     private func save() {
-        defaults.set(alertType.rawValue, forKey: Keys.alertType)
+        defaults.set(alertSoundEnabled, forKey: Keys.alertSoundEnabled)
+        defaults.set(alertBannerEnabled, forKey: Keys.alertBannerEnabled)
         defaults.set(cameraID, forKey: Keys.cameraID)
         defaults.set(blurOnTouch, forKey: Keys.blurOnTouch)
         defaults.set(blurIntensity, forKey: Keys.blurIntensity)
@@ -106,6 +121,8 @@ final class SettingsStore: ObservableObject {
 
     private enum Keys {
         static let alertType = "settings.alertType"
+        static let alertSoundEnabled = "settings.alertSoundEnabled"
+        static let alertBannerEnabled = "settings.alertBannerEnabled"
         static let cameraID = "settings.cameraID"
         static let blurOnTouch = "settings.blurOnTouch"
         static let blurIntensity = "settings.blurIntensity"

@@ -45,7 +45,9 @@ final class AppState: ObservableObject {
             },
             onTrigger: { [weak alertManager, weak settings] in
                 guard let settings else { return }
-                alertManager?.trigger(alertType: settings.alertType)
+                if settings.alertBannerEnabled {
+                    alertManager?.postBanner()
+                }
             }
         )
 
@@ -63,9 +65,9 @@ final class AppState: ObservableObject {
 
         blurOverlay.setIntensity(settings.blurIntensity)
 
-        settings.$alertType
-            .sink { [weak alertManager] alertType in
-                if alertType.usesBanner {
+        settings.$alertBannerEnabled
+            .sink { [weak alertManager] enabled in
+                if enabled {
                     alertManager?.ensureNotificationAuthorization()
                 }
             }
@@ -232,7 +234,7 @@ final class AppState: ObservableObject {
     }
 
     private func updateContinuousSound(isHit: Bool) {
-        guard settings.alertType.usesSound else {
+        guard settings.alertSoundEnabled else {
             alertManager.stopContinuous()
             return
         }
