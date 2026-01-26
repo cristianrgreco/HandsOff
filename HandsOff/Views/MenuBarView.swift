@@ -21,21 +21,12 @@ struct MenuBarView: View {
                 }
             }
 
-            Button(appState.isMonitoring ? "Stop Monitoring" : "Start Monitoring") {
-                appState.toggleMonitoring()
-            }
-
             previewSection
 
             Divider()
             StatsView(stats: appState.stats)
             Divider()
             SettingsView(settings: appState.settings, cameraStore: appState.cameraStore)
-            Divider()
-
-            Button("Quit Hands Off") {
-                NSApplication.shared.terminate(nil)
-            }
         }
         .padding(12)
         .frame(width: 300)
@@ -51,6 +42,37 @@ struct MenuBarView: View {
                     .font(.caption)
                     .foregroundStyle(appState.isMonitoring ? .green : .secondary)
             }
+            Spacer()
+            if appState.isMonitoring {
+                Button {
+                    appState.toggleMonitoring()
+                } label: {
+                    Text("Stop")
+                }
+                .buttonStyle(.bordered)
+                .tint(.red)
+                .controlSize(.small)
+                .help("Stop monitoring")
+            } else {
+                Button {
+                    appState.toggleMonitoring()
+                } label: {
+                    Text("Start")
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+                .controlSize(.small)
+                .help("Start monitoring")
+            }
+
+            Button {
+                NSApplication.shared.terminate(nil)
+            } label: {
+                Text("Quit")
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help("Quit Hands Off")
         }
     }
 

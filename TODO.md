@@ -2,13 +2,18 @@ Features
 
 UI/UX improvements
 
-- Remove monitoring time? Doesn't seem valuable.
-- Instead of many beeps, just start and hold one beep, and stop when user stops touching?
+- Continuous beep sound customizability?
+- Confirm/adjust settings defaults.
+- Group settings a bit better? E.g. no point choosing sound when continuous plays its own
+
 - Blur background red, or some other configurable color? Atm the white is a bit too strong in dark mode.
+
 - Sensitivity should just be hardcoded to low I think, why should it not be as accurate as possible?
 - Cooldown also just hardcoded to 1s for now I think. If the alert is annoying then what are we doing here?
-- Confirm/adjust settings defaults
-- Group settings a bit better?
+
+- Instead of 'start monitoring' button, can we play play/pause buttons next to the title to save space? Perhaps Quit button next to it?
+- Can the stats picker be left aligned?
+- Should the whole menu be wider now that it's quite tall?
 
 Bugs
 
@@ -20,5 +25,7 @@ Not possible?
 
 Testing
 
+- Confirm wake from sleep continues as expected.
 - Confirm login items works as expected, if we had or hadn't previously started monitoring.
-- Confirm what happens if webcam is disconnected while or while not running.
+- Confirm what happens if webcam is disconnected while or while not running. Ideally should just keep going with whatever webcam is available.
+  - Looks like the item is removed from the list, but the selected item remains the old one, displayed as a blank entry. No crash. Stop monitoring button is visible.
