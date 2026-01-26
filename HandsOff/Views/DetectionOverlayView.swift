@@ -9,7 +9,7 @@ struct DetectionOverlayView: View {
             ZStack(alignment: .topLeading) {
                 if let faceRect {
                     Rectangle()
-                        .stroke(isHit ? Color.red : Color.yellow, lineWidth: 2)
+                        .stroke(isHit ? Color.red : accentColor, lineWidth: 2)
                         .background(Color.clear)
                         .frame(width: faceRect.width, height: faceRect.height)
                         .position(x: faceRect.midX, y: faceRect.midY)
@@ -28,5 +28,17 @@ struct DetectionOverlayView: View {
             }
         }
         .allowsHitTesting(false)
+    }
+
+    private var accentColor: Color {
+        #if os(macOS)
+        let color = NSColor.controlAccentColor
+        if color == .clear {
+            return .yellow
+        }
+        return Color(color)
+        #else
+        return .yellow
+        #endif
     }
 }
