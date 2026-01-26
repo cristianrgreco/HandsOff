@@ -34,6 +34,8 @@ struct SettingsView: View {
                 }
             }
             .pickerStyle(.menu)
+
+            Toggle("Blur screen on touch", isOn: $settings.blurOnTouch)
         }
     }
 

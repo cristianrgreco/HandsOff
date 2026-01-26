@@ -69,6 +69,7 @@ final class SettingsStore: ObservableObject {
     @Published var alertType: AlertType { didSet { save() } }
     @Published var cooldownSeconds: Double { didSet { save() } }
     @Published var cameraID: String? { didSet { save() } }
+    @Published var blurOnTouch: Bool { didSet { save() } }
 
     private let defaults: UserDefaults
 
@@ -89,6 +90,7 @@ final class SettingsStore: ObservableObject {
         self.cooldownSeconds = cooldownValue > 0 ? cooldownValue : 10
 
         self.cameraID = defaults.string(forKey: Keys.cameraID)
+        self.blurOnTouch = defaults.bool(forKey: Keys.blurOnTouch)
     }
 
     private func save() {
@@ -96,6 +98,7 @@ final class SettingsStore: ObservableObject {
         defaults.set(alertType.rawValue, forKey: Keys.alertType)
         defaults.set(cooldownSeconds, forKey: Keys.cooldownSeconds)
         defaults.set(cameraID, forKey: Keys.cameraID)
+        defaults.set(blurOnTouch, forKey: Keys.blurOnTouch)
     }
 
     private enum Keys {
@@ -103,5 +106,6 @@ final class SettingsStore: ObservableObject {
         static let alertType = "settings.alertType"
         static let cooldownSeconds = "settings.cooldownSeconds"
         static let cameraID = "settings.cameraID"
+        static let blurOnTouch = "settings.blurOnTouch"
     }
 }

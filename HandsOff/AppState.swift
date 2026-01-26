@@ -17,6 +17,7 @@ final class AppState: ObservableObject {
 
     private let alertManager: AlertManager
     private let detectionEngine: DetectionEngine
+    private let blurOverlay = BlurOverlayController()
     private var monitoringActivity: NSObjectProtocol?
     private var isStarting = false
     private var cancellables = Set<AnyCancellable>()
@@ -53,6 +54,7 @@ final class AppState: ObservableObject {
             guard let self else { return }
             self.previewHit = observation.hit
             self.previewFaceZone = observation.faceZone
+            self.updateBlurOverlay(isHit: observation.hit)
         }
 
         detectionEngine.setPreviewHandler { [weak self] image in
@@ -63,6 +65,14 @@ final class AppState: ObservableObject {
             .sink { [weak alertManager] alertType in
                 if alertType.usesBanner {
                     alertManager?.ensureNotificationAuthorization()
+                }
+            }
+            .store(in: &cancellables)
+
+        settings.$blurOnTouch
+            .sink { [weak self] enabled in
+                if !enabled {
+                    self?.blurOverlay.hide()
                 }
             }
             .store(in: &cancellables)
@@ -130,6 +140,7 @@ final class AppState: ObservableObject {
         detectionEngine.stop()
         stats.endMonitoring()
         endMonitoringActivity()
+        blurOverlay.hide()
         isMonitoring = false
     }
 
@@ -142,6 +153,18 @@ final class AppState: ObservableObject {
         detectionEngine.setPreviewEnabled(enabled)
         if !enabled {
             previewImage = nil
+        }
+    }
+
+    private func updateBlurOverlay(isHit: Bool) {
+        guard isMonitoring, settings.blurOnTouch else {
+            blurOverlay.hide()
+            return
+        }
+        if isHit {
+            blurOverlay.show()
+        } else {
+            blurOverlay.hide()
         }
     }
 

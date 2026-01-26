@@ -55,7 +55,7 @@ final class DetectionEngine: NSObject {
     private let frameInterval: CFTimeInterval = 1.0 / 12.0
     private let staleFrameThreshold: CFTimeInterval = 1.0
     private let faceCacheDuration: CFTimeInterval = 2.0
-    private let previewInterval: CFTimeInterval = 1.0 / 6.0
+    private let previewInterval: CFTimeInterval = 1.0 / 12.0
 
     init(
         settingsProvider: @escaping () -> DetectionSettings,
