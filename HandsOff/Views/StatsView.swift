@@ -16,14 +16,25 @@ struct StatsView: View {
                 Text("\(stats.alertsToday)")
             }
 
-            Divider()
-
-            Picker("Range", selection: $range) {
-                ForEach(AlertRange.allCases) { option in
-                    Text(option.label).tag(option)
+            HStack(spacing: 8) {
+                Picker("Range", selection: $range) {
+                    ForEach(AlertRange.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
                 }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: .infinity)
+
+                Button {
+                    stats.resetAll()
+                } label: {
+                    Image(systemName: "arrow.counterclockwise")
+                        .accessibilityLabel("Reset stats")
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
+                .help("Reset stats")
             }
-            .pickerStyle(.segmented)
 
             TimelineView(.periodic(from: .now, by: range.refreshInterval)) { context in
                 let buckets = stats.alertBuckets(for: range, now: context.date)

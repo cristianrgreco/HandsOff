@@ -1,5 +1,52 @@
 import Foundation
 
+enum AlertRange: String, CaseIterable, Identifiable {
+    case hour
+    case day
+    case week
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .hour: return "Hour"
+        case .day: return "Day"
+        case .week: return "Week"
+        }
+    }
+
+    var window: TimeInterval {
+        switch self {
+        case .hour: return 60 * 60
+        case .day: return 24 * 60 * 60
+        case .week: return 7 * 24 * 60 * 60
+        }
+    }
+
+    var bucket: TimeInterval {
+        switch self {
+        case .hour: return 60
+        case .day: return 60 * 60
+        case .week: return 24 * 60 * 60
+        }
+    }
+
+    var refreshInterval: TimeInterval {
+        switch self {
+        case .hour: return 15
+        case .day: return 60
+        case .week: return 300
+        }
+    }
+}
+
+struct AlertBucket: Identifiable {
+    let date: Date
+    let count: Int
+
+    var id: Date { date }
+}
+
 final class StatsStore: ObservableObject {
     @Published private(set) var alertsToday: Int
     @Published private(set) var monitoringSecondsToday: Int
@@ -8,6 +55,8 @@ final class StatsStore: ObservableObject {
     private let defaults: UserDefaults
     private var currentDateKey: String
     private var monitoringStart: Date?
+    private var alertHistory: [TimeInterval]
+    private let historyRetention: TimeInterval = 7 * 24 * 60 * 60
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -17,13 +66,18 @@ final class StatsStore: ObservableObject {
         self.monitoringSecondsToday = defaults.integer(forKey: Keys.monitoringSecondsToday)
         self.touchFreeStreakDays = defaults.integer(forKey: Keys.touchFreeStreakDays)
         self.monitoringStart = nil
+        self.alertHistory = defaults.array(forKey: Keys.alertHistory) as? [TimeInterval] ?? []
 
         rolloverIfNeeded()
+        pruneHistory()
     }
 
-    func recordAlert() {
-        rolloverIfNeeded()
+    func recordAlert(now: Date = Date()) {
+        rolloverIfNeeded(now: now)
         alertsToday += 1
+        alertHistory.append(now.timeIntervalSince1970)
+        pruneHistory(now: now)
+        saveHistory()
         save()
     }
 
@@ -46,6 +100,38 @@ final class StatsStore: ObservableObject {
     var formattedMonitoringTime: String {
         let formatter = Self.durationFormatter
         return formatter.string(from: TimeInterval(currentMonitoringSeconds)) ?? "0m"
+    }
+
+    func alertBuckets(for range: AlertRange, now: Date = Date()) -> [AlertBucket] {
+        pruneHistory(now: now)
+        let end = now
+        let start = end.addingTimeInterval(-range.window)
+        let bucketCount = max(1, Int(range.window / range.bucket))
+        var counts = Array(repeating: 0, count: bucketCount)
+
+        for timestamp in alertHistory where timestamp >= start.timeIntervalSince1970 {
+            let offset = timestamp - start.timeIntervalSince1970
+            let index = Int(offset / range.bucket)
+            if index >= 0 && index < counts.count {
+                counts[index] += 1
+            }
+        }
+
+        return counts.enumerated().map { index, count in
+            let date = start.addingTimeInterval(range.bucket * Double(index))
+            return AlertBucket(date: date, count: count)
+        }
+    }
+
+    func resetAll(now: Date = Date()) {
+        currentDateKey = Self.dateKey(now)
+        alertsToday = 0
+        monitoringSecondsToday = 0
+        touchFreeStreakDays = 0
+        monitoringStart = nil
+        alertHistory.removeAll()
+        saveHistory()
+        save()
     }
 
     private var currentMonitoringSeconds: Int {
@@ -89,6 +175,16 @@ final class StatsStore: ObservableObject {
         defaults.set(touchFreeStreakDays, forKey: Keys.touchFreeStreakDays)
     }
 
+    private func saveHistory() {
+        defaults.set(alertHistory, forKey: Keys.alertHistory)
+    }
+
+    private func pruneHistory(now: Date = Date()) {
+        let cutoff = now.timeIntervalSince1970 - historyRetention
+        if alertHistory.isEmpty { return }
+        alertHistory = alertHistory.filter { $0 >= cutoff }
+    }
+
     private static func dateKey(_ date: Date) -> String {
         let formatter = Self.dateFormatter
         return formatter.string(from: date)
@@ -115,5 +211,6 @@ final class StatsStore: ObservableObject {
         static let alertsToday = "stats.alertsToday"
         static let monitoringSecondsToday = "stats.monitoringSecondsToday"
         static let touchFreeStreakDays = "stats.touchFreeStreakDays"
+        static let alertHistory = "stats.alertHistory"
     }
 }
