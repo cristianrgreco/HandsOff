@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4C5B7AA082370D55E83E0E02 /* PreviewFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7790AC94586ED71E596273A /* PreviewFrameView.swift */; };
+		4DBD2BC691C610F0FC78D1FB /* DetectionOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */; };
 		8991EE10DBCD567C0ECCC44B /* HandsOffApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B0C7C4C1661C99BD92C9D6 /* HandsOffApp.swift */; };
 		9584D5AC687AAB482A84F3FA /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEF5F19F145D8EE7E7986A4 /* AppState.swift */; };
 		993F2E28C3456175DCD5081F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EA664A2C98A450CF8C99A5 /* SettingsView.swift */; };
@@ -20,6 +22,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionOverlayView.swift; sourceTree = "<group>"; };
 		2223377E43D5C63818771A08 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		31E88109BC34A9A193DF2415 /* CameraStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStore.swift; sourceTree = "<group>"; };
 		340EA053A14912C60246F6E4 /* AlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertManager.swift; sourceTree = "<group>"; };
@@ -33,6 +36,7 @@
 		A0DF28F9809C1ABF7DD587DF /* StatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStore.swift; sourceTree = "<group>"; };
 		BBB87CFAFE32C538E0CACAE7 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		C3EA664A2C98A450CF8C99A5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		E7790AC94586ED71E596273A /* PreviewFrameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFrameView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -66,7 +70,9 @@
 		3A705C3DCE19FCB99A1F902E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */,
 				BBB87CFAFE32C538E0CACAE7 /* MenuBarView.swift */,
+				E7790AC94586ED71E596273A /* PreviewFrameView.swift */,
 				C3EA664A2C98A450CF8C99A5 /* SettingsView.swift */,
 				628947D253CBBB064E7AFFF4 /* StatsView.swift */,
 			);
@@ -160,8 +166,10 @@
 				9584D5AC687AAB482A84F3FA /* AppState.swift in Sources */,
 				CF0FD4F99DAB2C1D7320974B /* CameraStore.swift in Sources */,
 				EF19F739A67B5852CADF233C /* DetectionEngine.swift in Sources */,
+				4DBD2BC691C610F0FC78D1FB /* DetectionOverlayView.swift in Sources */,
 				8991EE10DBCD567C0ECCC44B /* HandsOffApp.swift in Sources */,
 				FB7B056F4AC1FA7A229111D4 /* MenuBarView.swift in Sources */,
+				4C5B7AA082370D55E83E0E02 /* PreviewFrameView.swift in Sources */,
 				A00D4B1F6544897E3696827D /* SettingsStore.swift in Sources */,
 				993F2E28C3456175DCD5081F /* SettingsView.swift in Sources */,
 				F3AD2E2A47E7E2E4ABACDF3A /* StatsStore.swift in Sources */,

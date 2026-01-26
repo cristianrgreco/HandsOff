@@ -17,4 +17,6 @@ Useful CLI commands
 - Generate the Xcode project: `xcodegen`
 - Build the app: `xcodebuild -project HandsOff.xcodeproj -scheme HandsOff -configuration Debug -destination 'platform=macOS' -derivedDataPath .build build`
 - Launch the built app: `open .build/Build/Products/Debug/HandsOff.app`
+- Relaunch (kill + open): `killall HandsOff || true` then `open .build/Build/Products/Debug/HandsOff.app`
+- Always rebuild + relaunch after changes: run the build command, then the relaunch command above.
 - One-time Xcode setup (if xcodebuild fails): `sudo xcodebuild -runFirstLaunch`

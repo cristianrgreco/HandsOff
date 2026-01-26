@@ -1,5 +1,6 @@
 import AVFoundation
 import CoreGraphics
+import CoreImage
 import Foundation
 import QuartzCore
 import Vision
@@ -8,6 +9,11 @@ struct DetectionSettings {
     let sensitivity: Sensitivity
     let cooldownSeconds: Double
     let cameraID: String?
+}
+
+struct DetectionObservation {
+    let hit: Bool
+    let faceZone: CGRect?
 }
 
 enum DetectionStartError: String, Error, Identifiable, Equatable {
@@ -26,26 +32,57 @@ final class DetectionEngine: NSObject {
     private let output = AVCaptureVideoDataOutput()
     private let settingsProvider: () -> DetectionSettings
     private let onTrigger: () -> Void
+    private var onObservation: (DetectionObservation) -> Void = { _ in }
+    private var onPreviewFrame: ((CGImage) -> Void)?
+    private var sessionMonitor: DispatchSourceTimer?
+    private var sessionObservers: [NSObjectProtocol] = []
 
     private var isConfigured = false
     private var isRunning = false
     private var isProcessing = false
+    private var isInterrupted = false
+    private var previewEnabled = false
     private var activeCameraID: String?
     private var lastFaceBoundingBox: CGRect?
     private var lastFaceTime: CFTimeInterval = 0
     private var lastFrameTime: CFTimeInterval = 0
     private var lastTriggerTime: CFTimeInterval = 0
+    private var lastPreviewTime: CFTimeInterval = 0
     private var recentHits: [Bool] = []
+    private let ciContext = CIContext()
 
     private let confidenceThreshold: Float = 0.25
     private let frameInterval: CFTimeInterval = 1.0 / 12.0
     private let staleFrameThreshold: CFTimeInterval = 1.0
     private let faceCacheDuration: CFTimeInterval = 2.0
+    private let previewInterval: CFTimeInterval = 1.0 / 6.0
 
-    init(settingsProvider: @escaping () -> DetectionSettings, onTrigger: @escaping () -> Void) {
+    init(
+        settingsProvider: @escaping () -> DetectionSettings,
+        onTrigger: @escaping () -> Void
+    ) {
         self.settingsProvider = settingsProvider
         self.onTrigger = onTrigger
         super.init()
+    }
+
+    func setObservationHandler(_ handler: @escaping (DetectionObservation) -> Void) {
+        onObservation = handler
+    }
+
+    func setPreviewHandler(_ handler: @escaping (CGImage) -> Void) {
+        visionQueue.async {
+            self.onPreviewFrame = handler
+        }
+    }
+
+    func setPreviewEnabled(_ enabled: Bool) {
+        visionQueue.async {
+            self.previewEnabled = enabled
+            if !enabled {
+                self.lastPreviewTime = 0
+            }
+        }
     }
 
     func start(completion: @escaping (DetectionStartError?) -> Void) {
@@ -70,6 +107,7 @@ final class DetectionEngine: NSObject {
     func stop() {
         sessionQueue.async {
             self.isRunning = false
+            self.stopSessionMonitor()
             if self.session.isRunning {
                 self.session.stopRunning()
             }
@@ -93,6 +131,8 @@ final class DetectionEngine: NSObject {
             if !self.session.isRunning {
                 self.session.startRunning()
             }
+            self.startSessionObservers()
+            self.startSessionMonitor()
             self.complete(nil, completion: completion)
         }
     }
@@ -145,6 +185,94 @@ final class DetectionEngine: NSObject {
         lastFaceTime = 0
         lastFrameTime = 0
         lastTriggerTime = 0
+        lastPreviewTime = 0
+    }
+
+    private func startSessionMonitor() {
+        sessionMonitor?.cancel()
+        let timer = DispatchSource.makeTimerSource(queue: sessionQueue)
+        timer.schedule(deadline: .now() + 2, repeating: 2)
+        timer.setEventHandler { [weak self] in
+            guard let self, self.isRunning else { return }
+            guard !self.isInterrupted else { return }
+            if !self.session.isRunning {
+                self.session.startRunning()
+                self.resetFrameClock()
+                return
+            }
+            let now = CACurrentMediaTime()
+            if self.lastFrameTime > 0, now - self.lastFrameTime > 2.5 {
+                self.restartSession()
+            }
+        }
+        timer.resume()
+        sessionMonitor = timer
+    }
+
+    private func stopSessionMonitor() {
+        sessionMonitor?.cancel()
+        sessionMonitor = nil
+    }
+
+    private func startSessionObservers() {
+        guard sessionObservers.isEmpty else { return }
+        let center = NotificationCenter.default
+        sessionObservers.append(
+            center.addObserver(
+                forName: .AVCaptureSessionWasInterrupted,
+                object: session,
+                queue: .main
+            ) { [weak self] notification in
+                self?.sessionQueue.async {
+                    self?.handleSessionInterrupted(notification)
+                }
+            }
+        )
+        sessionObservers.append(
+            center.addObserver(
+                forName: .AVCaptureSessionInterruptionEnded,
+                object: session,
+                queue: .main
+            ) { [weak self] _ in
+                self?.sessionQueue.async {
+                    self?.isInterrupted = false
+                    self?.restartSession()
+                }
+            }
+        )
+        sessionObservers.append(
+            center.addObserver(
+                forName: .AVCaptureSessionRuntimeError,
+                object: session,
+                queue: .main
+            ) { [weak self] notification in
+                self?.sessionQueue.async {
+                    self?.handleSessionRuntimeError(notification)
+                }
+            }
+        )
+    }
+
+    private func handleSessionInterrupted(_ notification: Notification) {
+        isInterrupted = true
+    }
+
+    private func handleSessionRuntimeError(_ notification: Notification) {
+        guard notification.userInfo?[AVCaptureSessionErrorKey] as? NSError != nil else {
+            return
+        }
+        restartSession()
+    }
+
+    private func restartSession() {
+        guard isRunning else { return }
+        session.stopRunning()
+        session.startRunning()
+        resetFrameClock()
+    }
+
+    private func resetFrameClock() {
+        lastFrameTime = 0
     }
 
     private func complete(_ error: DetectionStartError?, completion: @escaping (DetectionStartError?) -> Void) {
@@ -163,6 +291,7 @@ final class DetectionEngine: NSObject {
         lastFrameTime = now
 
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        emitPreview(pixelBuffer, now: now)
 
         let settings = settingsProvider()
         let faceRequest = VNDetectFaceLandmarksRequest()
@@ -186,12 +315,14 @@ final class DetectionEngine: NSObject {
 
         guard let faceBox else {
             updateHit(false, settings: settings)
+            emitObservation(faceZone: nil, hit: false)
             return
         }
 
         let faceZone = expandedRect(faceBox, by: settings.sensitivity.zoneExpansion)
         let hit = points.contains { faceZone.contains($0) }
         updateHit(hit, settings: settings)
+        emitObservation(faceZone: faceZone, hit: hit)
     }
 
     private func updateHit(_ hit: Bool, settings: DetectionSettings) {
@@ -208,8 +339,17 @@ final class DetectionEngine: NSObject {
         guard now - lastTriggerTime >= settings.cooldownSeconds else { return }
         lastTriggerTime = now
 
+        onTrigger()
+    }
+
+    private func emitPreview(_ pixelBuffer: CVPixelBuffer, now: CFTimeInterval) {
+        guard previewEnabled else { return }
+        guard now - lastPreviewTime >= previewInterval else { return }
+        lastPreviewTime = now
+        let image = CIImage(cvPixelBuffer: pixelBuffer)
+        guard let cgImage = ciContext.createCGImage(image, from: image.extent) else { return }
         DispatchQueue.main.async {
-            self.onTrigger()
+            self.onPreviewFrame?(cgImage)
         }
     }
 
@@ -253,6 +393,12 @@ final class DetectionEngine: NSObject {
         expanded.size.width = min(1 - expanded.origin.x, expanded.size.width)
         expanded.size.height = min(1 - expanded.origin.y, expanded.size.height)
         return expanded
+    }
+
+    private func emitObservation(faceZone: CGRect?, hit: Bool) {
+        DispatchQueue.main.async {
+            self.onObservation(DetectionObservation(hit: hit, faceZone: faceZone))
+        }
     }
 
     private func resolveFaceBox(

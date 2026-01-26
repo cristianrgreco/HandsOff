@@ -1,10 +1,15 @@
 import AppKit
+import AVFoundation
 import Combine
+import CoreGraphics
 import Foundation
 
 final class AppState: ObservableObject {
     @Published private(set) var isMonitoring = false
     @Published var lastError: DetectionStartError?
+    @Published var previewHit = false
+    @Published var previewFaceZone: CGRect?
+    @Published var previewImage: CGImage?
 
     let settings: SettingsStore
     let stats: StatsStore
@@ -12,7 +17,8 @@ final class AppState: ObservableObject {
 
     private let alertManager: AlertManager
     private let detectionEngine: DetectionEngine
-    private var monitoringTimer: Timer?
+    private var monitoringActivity: NSObjectProtocol?
+    private var isStarting = false
     private var cancellables = Set<AnyCancellable>()
 
     init() {
@@ -34,12 +40,24 @@ final class AppState: ObservableObject {
                 )
             },
             onTrigger: { [weak stats, weak alertManager, weak settings] in
-                stats?.recordAlert()
                 if let alertType = settings?.alertType {
                     alertManager?.trigger(alertType: alertType)
                 }
+                DispatchQueue.main.async {
+                    stats?.recordAlert()
+                }
             }
         )
+
+        detectionEngine.setObservationHandler { [weak self] observation in
+            guard let self else { return }
+            self.previewHit = observation.hit
+            self.previewFaceZone = observation.faceZone
+        }
+
+        detectionEngine.setPreviewHandler { [weak self] image in
+            self?.previewImage = image
+        }
 
         settings.$alertType
             .sink { [weak alertManager] alertType in
@@ -52,17 +70,21 @@ final class AppState: ObservableObject {
         cameraStore.$devices
             .sink { [weak self] _ in
                 guard let self else { return }
-                let preferred = self.cameraStore.preferredDeviceID(storedID: self.settings.cameraID)
-                if preferred != self.settings.cameraID {
-                    self.settings.cameraID = preferred
-                }
+                guard !self.isMonitoring, !self.isStarting else { return }
+                guard !self.cameraStore.devices.isEmpty else { return }
+                let storedID = self.settings.cameraID
+                let isStoredAvailable = storedID.flatMap { id in
+                    self.cameraStore.devices.first(where: { $0.uniqueID == id })
+                } != nil
+                guard storedID == nil || !isStoredAvailable else { return }
+                self.settings.cameraID = self.cameraStore.preferredDeviceID(storedID: storedID)
             }
             .store(in: &cancellables)
 
         settings.$cameraID
             .dropFirst()
             .sink { [weak self] _ in
-                guard let self, self.isMonitoring else { return }
+                guard let self, self.isMonitoring, !self.isStarting else { return }
                 self.restartMonitoring()
             }
             .store(in: &cancellables)
@@ -81,9 +103,16 @@ final class AppState: ObservableObject {
     }
 
     func startMonitoring() {
+        guard !isMonitoring, !isStarting else { return }
+        if settings.cameraID == nil {
+            cameraStore.refresh()
+            settings.cameraID = cameraStore.preferredDeviceID(storedID: nil)
+        }
         lastError = nil
+        isStarting = true
         detectionEngine.start { [weak self] error in
             guard let self else { return }
+            self.isStarting = false
             if let error {
                 self.isMonitoring = false
                 self.lastError = error
@@ -91,19 +120,29 @@ final class AppState: ObservableObject {
             }
 
             self.isMonitoring = true
-            self.startMonitoringTimer()
+            self.stats.beginMonitoring()
+            self.beginMonitoringActivity()
         }
     }
 
     func stopMonitoring() {
+        isStarting = false
         detectionEngine.stop()
-        stopMonitoringTimer()
+        stats.endMonitoring()
+        endMonitoringActivity()
         isMonitoring = false
     }
 
     private func restartMonitoring() {
         stopMonitoring()
         startMonitoring()
+    }
+
+    func setPreviewEnabled(_ enabled: Bool) {
+        detectionEngine.setPreviewEnabled(enabled)
+        if !enabled {
+            previewImage = nil
+        }
     }
 
     func openCameraSettings() {
@@ -113,15 +152,17 @@ final class AppState: ObservableObject {
         NSWorkspace.shared.open(url)
     }
 
-    private func startMonitoringTimer() {
-        monitoringTimer?.invalidate()
-        monitoringTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            self?.stats.addMonitoringSeconds(1)
-        }
+    private func beginMonitoringActivity() {
+        guard monitoringActivity == nil else { return }
+        monitoringActivity = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiated, .idleSystemSleepDisabled],
+            reason: "HandsOff monitoring"
+        )
     }
 
-    private func stopMonitoringTimer() {
-        monitoringTimer?.invalidate()
-        monitoringTimer = nil
+    private func endMonitoringActivity() {
+        guard let monitoringActivity else { return }
+        ProcessInfo.processInfo.endActivity(monitoringActivity)
+        self.monitoringActivity = nil
     }
 }

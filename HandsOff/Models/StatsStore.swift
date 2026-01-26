@@ -7,6 +7,7 @@ final class StatsStore: ObservableObject {
 
     private let defaults: UserDefaults
     private var currentDateKey: String
+    private var monitoringStart: Date?
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -15,6 +16,7 @@ final class StatsStore: ObservableObject {
         self.alertsToday = defaults.integer(forKey: Keys.alertsToday)
         self.monitoringSecondsToday = defaults.integer(forKey: Keys.monitoringSecondsToday)
         self.touchFreeStreakDays = defaults.integer(forKey: Keys.touchFreeStreakDays)
+        self.monitoringStart = nil
 
         rolloverIfNeeded()
     }
@@ -25,20 +27,47 @@ final class StatsStore: ObservableObject {
         save()
     }
 
-    func addMonitoringSeconds(_ seconds: Int) {
-        rolloverIfNeeded()
-        monitoringSecondsToday += seconds
+    func beginMonitoring(now: Date = Date()) {
+        rolloverIfNeeded(now: now)
+        guard monitoringStart == nil else { return }
+        monitoringStart = now
+        save()
+    }
+
+    func endMonitoring(now: Date = Date()) {
+        rolloverIfNeeded(now: now)
+        guard let monitoringStart else { return }
+        let elapsed = max(0, now.timeIntervalSince(monitoringStart))
+        monitoringSecondsToday += Int(elapsed.rounded())
+        self.monitoringStart = nil
         save()
     }
 
     var formattedMonitoringTime: String {
         let formatter = Self.durationFormatter
-        return formatter.string(from: TimeInterval(monitoringSecondsToday)) ?? "0m"
+        return formatter.string(from: TimeInterval(currentMonitoringSeconds)) ?? "0m"
+    }
+
+    private var currentMonitoringSeconds: Int {
+        rolloverIfNeeded()
+        if let monitoringStart {
+            let elapsed = max(0, Date().timeIntervalSince(monitoringStart))
+            return monitoringSecondsToday + Int(elapsed.rounded())
+        }
+        return monitoringSecondsToday
     }
 
     private func rolloverIfNeeded(now: Date = Date()) {
         let todayKey = Self.dateKey(now)
         guard todayKey != currentDateKey else { return }
+
+        if let monitoringStart {
+            let calendar = Calendar(identifier: .gregorian)
+            let midnight = calendar.startOfDay(for: now)
+            let elapsed = max(0, midnight.timeIntervalSince(monitoringStart))
+            monitoringSecondsToday += Int(elapsed.rounded())
+            self.monitoringStart = midnight
+        }
 
         let completedTouchFreeDay = alertsToday == 0 && monitoringSecondsToday > 0
         if completedTouchFreeDay {

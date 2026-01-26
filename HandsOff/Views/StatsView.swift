@@ -14,10 +14,12 @@ struct StatsView: View {
                 Text("\(stats.alertsToday)")
             }
 
-            HStack {
-                Text("Monitoring")
-                Spacer()
-                Text(stats.formattedMonitoringTime)
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                HStack {
+                    Text("Monitoring")
+                    Spacer()
+                    Text(stats.formattedMonitoringTime)
+                }
             }
 
             HStack {
