@@ -22,6 +22,7 @@ struct SettingsView: View {
             sectionHeader("System")
             Toggle("Start at login", isOn: $settings.startAtLogin)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func sectionHeader(_ text: String) -> some View {

@@ -3,13 +3,10 @@ Features
 UI/UX improvements
 
 - App icon
-- Continuous beep sound customizability?
-- Replace blur with red screen flash?
 
 Bugs
 
 - Face bounding box isn't quite right on x-axis. It s offset a bit too much to the left.
-- Stats dots change when camera stopped/started repeatedly.
 
 Testing
 

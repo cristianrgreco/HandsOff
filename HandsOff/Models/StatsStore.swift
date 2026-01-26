@@ -104,7 +104,7 @@ final class StatsStore: ObservableObject {
 
     func alertBuckets(for range: AlertRange, now: Date = Date()) -> [AlertBucket] {
         pruneHistory(now: now)
-        let end = now
+        let end = alignedEnd(for: range, now: now)
         let start = end.addingTimeInterval(-range.window)
         let bucketCount = max(1, Int(range.window / range.bucket))
         var counts = Array(repeating: 0, count: bucketCount)
@@ -120,6 +120,21 @@ final class StatsStore: ObservableObject {
         return counts.enumerated().map { index, count in
             let date = start.addingTimeInterval(range.bucket * Double(index))
             return AlertBucket(date: date, count: count)
+        }
+    }
+
+    private func alignedEnd(for range: AlertRange, now: Date) -> Date {
+        let calendar = Calendar(identifier: .gregorian)
+        switch range {
+        case .hour:
+            return calendar.date(bySetting: .second, value: 0, of: now) ?? now
+        case .day:
+            var components = calendar.dateComponents([.year, .month, .day, .hour], from: now)
+            components.minute = 0
+            components.second = 0
+            return calendar.date(from: components) ?? now
+        case .week:
+            return calendar.startOfDay(for: now)
         }
     }
 
