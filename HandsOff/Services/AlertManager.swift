@@ -13,17 +13,27 @@ final class AlertManager {
         }
     }
 
-    func trigger(alertType: AlertType) {
+    func trigger(alertType: AlertType, alertSound: AlertSound) {
         switch alertType {
         case .off:
             return
         case .chime:
-            NSSound.beep()
+            playSound(alertSound)
         case .banner:
             postBanner()
         case .both:
-            NSSound.beep()
+            playSound(alertSound)
             postBanner()
+        }
+    }
+
+    private func playSound(_ sound: AlertSound) {
+        if let systemSound = NSSound(named: NSSound.Name(sound.systemSoundName)) {
+            systemSound.stop()
+            systemSound.currentTime = 0
+            systemSound.play()
+        } else {
+            NSSound.beep()
         }
     }
 

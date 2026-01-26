@@ -4,7 +4,7 @@ final class BlurOverlayController {
     private var windows: [NSWindow] = []
     private var isVisible = false
     private var screenObserver: NSObjectProtocol?
-    private let blurAlpha: CGFloat = 0.75
+    private var blurAlpha: CGFloat = 0.75
 
     init() {
         screenObserver = NotificationCenter.default.addObserver(
@@ -34,6 +34,12 @@ final class BlurOverlayController {
         guard isVisible else { return }
         isVisible = false
         windows.forEach { $0.orderOut(nil) }
+    }
+
+    func setIntensity(_ value: Double) {
+        let clamped = max(0.0, min(1.0, value))
+        blurAlpha = CGFloat(clamped)
+        windows.forEach { $0.alphaValue = blurAlpha }
     }
 
     private func ensureWindows() {

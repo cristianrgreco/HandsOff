@@ -42,7 +42,8 @@ final class AppState: ObservableObject {
             },
             onTrigger: { [weak stats, weak alertManager, weak settings] in
                 if let alertType = settings?.alertType {
-                    alertManager?.trigger(alertType: alertType)
+                    let alertSound = settings?.alertSound ?? .ping
+                    alertManager?.trigger(alertType: alertType, alertSound: alertSound)
                 }
                 DispatchQueue.main.async {
                     stats?.recordAlert()
@@ -61,6 +62,8 @@ final class AppState: ObservableObject {
             self?.previewImage = image
         }
 
+        blurOverlay.setIntensity(settings.blurIntensity)
+
         settings.$alertType
             .sink { [weak alertManager] alertType in
                 if alertType.usesBanner {
@@ -74,6 +77,12 @@ final class AppState: ObservableObject {
                 if !enabled {
                     self?.blurOverlay.hide()
                 }
+            }
+            .store(in: &cancellables)
+
+        settings.$blurIntensity
+            .sink { [weak self] value in
+                self?.blurOverlay.setIntensity(value)
             }
             .store(in: &cancellables)
 
