@@ -5,9 +5,11 @@ Features
 
 UI/UX improvements
 
-- Better sound than chime? Perhaps AI can generate a custom one?
 - Remove monitoring time? Doesn't seem valuable.
 - Make bounding box same color as system accent color?
+- Instead of many beeps, just start and hold one beep, and stop when user stops touching?
+- Blur background red, or some other configurable color? Atm the white is a bit too strong in dark mode.
+- Keep menu bar item open when clicking 'Start monitoring'?
 
 - Sensitivity should just be hardcoded to low I think, why should it not be as accurate as possible?
 - Cooldown also just hardcoded to 1s for now I think. If the alert is annoying then what are we doing here?
