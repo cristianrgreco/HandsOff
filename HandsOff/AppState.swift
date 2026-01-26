@@ -134,11 +134,19 @@ final class AppState: ObservableObject {
             settings.cameraID = cameraStore.preferredDeviceID(storedID: nil)
         }
 
+        requestCameraAccessIfNeeded()
+
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             guard self.settings.resumeMonitoringOnLaunch else { return }
             self.startMonitoring()
         }
+    }
+
+    private func requestCameraAccessIfNeeded() {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        guard status == .notDetermined else { return }
+        AVCaptureDevice.requestAccess(for: .video) { _ in }
     }
 
     func toggleMonitoring() {
