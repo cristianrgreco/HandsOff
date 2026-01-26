@@ -22,7 +22,10 @@ final class AppState: ObservableObject {
     private var monitoringActivity: NSObjectProtocol?
     private var isStarting = false
     private var isUpdatingLoginItem = false
+    private var isTouching = false
+    private var touchReleaseStart: CFTimeInterval?
     private var cancellables = Set<AnyCancellable>()
+    private let touchReleaseDebounce: CFTimeInterval = 0.3
 
     init() {
         let settings = SettingsStore()
@@ -42,13 +45,10 @@ final class AppState: ObservableObject {
                     cameraID: settings.cameraID
                 )
             },
-            onTrigger: { [weak stats, weak alertManager, weak settings] in
+            onTrigger: { [weak alertManager, weak settings] in
                 if let alertType = settings?.alertType {
                     let alertSound = settings?.alertSound ?? .ping
                     alertManager?.trigger(alertType: alertType, alertSound: alertSound)
-                }
-                DispatchQueue.main.async {
-                    stats?.recordAlert()
                 }
             }
         )
@@ -58,6 +58,7 @@ final class AppState: ObservableObject {
             self.previewHit = observation.hit
             self.previewFaceZone = observation.faceZone
             self.updateBlurOverlay(isHit: observation.hit)
+            self.updateTouchState(isHit: observation.hit)
         }
 
         detectionEngine.setPreviewHandler { [weak self] image in
@@ -168,6 +169,7 @@ final class AppState: ObservableObject {
             }
 
             self.isMonitoring = true
+            self.resetTouchState()
             self.settings.resumeMonitoringOnLaunch = true
             self.stats.beginMonitoring()
             self.beginMonitoringActivity()
@@ -181,6 +183,7 @@ final class AppState: ObservableObject {
         endMonitoringActivity()
         blurOverlay.hide()
         settings.resumeMonitoringOnLaunch = false
+        resetTouchState()
         isMonitoring = false
     }
 
@@ -206,6 +209,33 @@ final class AppState: ObservableObject {
         } else {
             blurOverlay.hide()
         }
+    }
+
+    private func updateTouchState(isHit: Bool) {
+        guard isMonitoring else { return }
+        let now = CACurrentMediaTime()
+
+        if isHit {
+            touchReleaseStart = nil
+            if !isTouching {
+                isTouching = true
+                stats.recordAlert()
+            }
+        } else if isTouching {
+            if let touchReleaseStart {
+                if now - touchReleaseStart >= touchReleaseDebounce {
+                    isTouching = false
+                    self.touchReleaseStart = nil
+                }
+            } else {
+                touchReleaseStart = now
+            }
+        }
+    }
+
+    private func resetTouchState() {
+        isTouching = false
+        touchReleaseStart = nil
     }
 
     func openCameraSettings() {
