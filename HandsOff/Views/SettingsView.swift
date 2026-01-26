@@ -56,6 +56,8 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
             .disabled(!settings.blurOnTouch)
+
+            Toggle("Start at login", isOn: $settings.startAtLogin)
         }
     }
 

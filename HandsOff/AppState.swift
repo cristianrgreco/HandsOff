@@ -18,8 +18,10 @@ final class AppState: ObservableObject {
     private let alertManager: AlertManager
     private let detectionEngine: DetectionEngine
     private let blurOverlay = BlurOverlayController()
+    private let loginItemManager = LoginItemManager()
     private var monitoringActivity: NSObjectProtocol?
     private var isStarting = false
+    private var isUpdatingLoginItem = false
     private var cancellables = Set<AnyCancellable>()
 
     init() {
@@ -86,6 +88,27 @@ final class AppState: ObservableObject {
             }
             .store(in: &cancellables)
 
+        if loginItemManager.isSupported {
+            let enabled = loginItemManager.isEnabled()
+            if settings.startAtLogin != enabled {
+                settings.startAtLogin = enabled
+            }
+        }
+
+        settings.$startAtLogin
+            .sink { [weak self] enabled in
+                guard let self else { return }
+                guard self.loginItemManager.isSupported else { return }
+                guard !self.isUpdatingLoginItem else { return }
+                self.isUpdatingLoginItem = true
+                let success = self.loginItemManager.setEnabled(enabled)
+                if !success {
+                    self.settings.startAtLogin = !enabled
+                }
+                self.isUpdatingLoginItem = false
+            }
+            .store(in: &cancellables)
+
         cameraStore.$devices
             .sink { [weak self] _ in
                 guard let self else { return }
@@ -110,6 +133,12 @@ final class AppState: ObservableObject {
 
         if settings.cameraID == nil {
             settings.cameraID = cameraStore.preferredDeviceID(storedID: nil)
+        }
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            guard self.settings.startAtLogin, self.settings.resumeMonitoringOnLaunch else { return }
+            self.startMonitoring()
         }
     }
 
@@ -139,6 +168,7 @@ final class AppState: ObservableObject {
             }
 
             self.isMonitoring = true
+            self.settings.resumeMonitoringOnLaunch = true
             self.stats.beginMonitoring()
             self.beginMonitoringActivity()
         }
@@ -150,6 +180,7 @@ final class AppState: ObservableObject {
         stats.endMonitoring()
         endMonitoringActivity()
         blurOverlay.hide()
+        settings.resumeMonitoringOnLaunch = false
         isMonitoring = false
     }
 
