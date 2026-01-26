@@ -1,15 +1,8 @@
-import AVFoundation
 import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings: SettingsStore
     @ObservedObject var cameraStore: CameraStore
-
-    private let cooldownOptions: [(label: String, value: Double)] = [
-        ("Fast", 0.25),
-        ("Regular", 1.0),
-        ("Slow", 3.0)
-    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -20,39 +13,9 @@ struct SettingsView: View {
 
             cameraPicker
 
-            Picker("Sensitivity", selection: $settings.sensitivity) {
-                ForEach(Sensitivity.allCases) { level in
-                    Text(level.label).tag(level)
-                }
-            }
-            .pickerStyle(.menu)
-
             Picker("Alert", selection: $settings.alertType) {
                 ForEach(AlertType.allCases) { alert in
                     Text(alert.label).tag(alert)
-                }
-            }
-            .pickerStyle(.menu)
-
-            Picker("Sound", selection: $settings.alertSound) {
-                ForEach(AlertSound.allCases) { sound in
-                    Text(sound.label).tag(sound)
-                }
-            }
-            .pickerStyle(.menu)
-            .disabled(!settings.alertType.usesSound)
-
-            Picker("Sound mode", selection: $settings.soundMode) {
-                ForEach(SoundMode.allCases) { mode in
-                    Text(mode.label).tag(mode)
-                }
-            }
-            .pickerStyle(.menu)
-            .disabled(!settings.alertType.usesSound)
-
-            Picker("Cooldown", selection: $settings.cooldownSeconds) {
-                ForEach(cooldownOptions, id: \.value) { option in
-                    Text(option.label).tag(option.value)
                 }
             }
             .pickerStyle(.menu)

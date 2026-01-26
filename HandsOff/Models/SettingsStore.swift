@@ -68,50 +68,8 @@ enum AlertType: String, CaseIterable, Identifiable {
     }
 }
 
-enum AlertSound: String, CaseIterable, Identifiable {
-    case softTick = "soft_tick"
-    case ping = "ping"
-    case strongBeep = "strong_beep"
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .softTick: return "Soft Tick"
-        case .ping: return "Ping"
-        case .strongBeep: return "Strong Beep"
-        }
-    }
-
-    var systemSoundName: String {
-        switch self {
-        case .softTick: return "Tink"
-        case .ping: return "Ping"
-        case .strongBeep: return "Basso"
-        }
-    }
-}
-
-enum SoundMode: String, CaseIterable, Identifiable {
-    case repeatAlert = "repeat"
-    case continuous = "continuous"
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .repeatAlert: return "Repeat"
-        case .continuous: return "Continuous"
-        }
-    }
-}
-
 final class SettingsStore: ObservableObject {
-    @Published var sensitivity: Sensitivity { didSet { save() } }
     @Published var alertType: AlertType { didSet { save() } }
-    @Published var alertSound: AlertSound { didSet { save() } }
-    @Published var soundMode: SoundMode { didSet { save() } }
-    @Published var cooldownSeconds: Double { didSet { save() } }
     @Published var cameraID: String? { didSet { save() } }
     @Published var blurOnTouch: Bool { didSet { save() } }
     @Published var blurIntensity: Double { didSet { save() } }
@@ -123,24 +81,8 @@ final class SettingsStore: ObservableObject {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
-        if defaults.object(forKey: Keys.sensitivity) != nil {
-            let sensitivityRaw = defaults.integer(forKey: Keys.sensitivity)
-            self.sensitivity = Sensitivity(rawValue: sensitivityRaw) ?? .medium
-        } else {
-            self.sensitivity = .medium
-        }
-
         let alertRaw = defaults.string(forKey: Keys.alertType) ?? AlertType.chime.rawValue
         self.alertType = AlertType(rawValue: alertRaw) ?? .chime
-
-        let soundRaw = defaults.string(forKey: Keys.alertSound) ?? AlertSound.ping.rawValue
-        self.alertSound = AlertSound(rawValue: soundRaw) ?? .ping
-
-        let soundModeRaw = defaults.string(forKey: Keys.soundMode) ?? SoundMode.repeatAlert.rawValue
-        self.soundMode = SoundMode(rawValue: soundModeRaw) ?? .repeatAlert
-
-        let cooldownValue = defaults.double(forKey: Keys.cooldownSeconds)
-        self.cooldownSeconds = cooldownValue > 0 ? cooldownValue : 10
 
         self.cameraID = defaults.string(forKey: Keys.cameraID)
         self.blurOnTouch = defaults.bool(forKey: Keys.blurOnTouch)
@@ -154,11 +96,7 @@ final class SettingsStore: ObservableObject {
     }
 
     private func save() {
-        defaults.set(sensitivity.rawValue, forKey: Keys.sensitivity)
         defaults.set(alertType.rawValue, forKey: Keys.alertType)
-        defaults.set(alertSound.rawValue, forKey: Keys.alertSound)
-        defaults.set(soundMode.rawValue, forKey: Keys.soundMode)
-        defaults.set(cooldownSeconds, forKey: Keys.cooldownSeconds)
         defaults.set(cameraID, forKey: Keys.cameraID)
         defaults.set(blurOnTouch, forKey: Keys.blurOnTouch)
         defaults.set(blurIntensity, forKey: Keys.blurIntensity)
@@ -167,11 +105,7 @@ final class SettingsStore: ObservableObject {
     }
 
     private enum Keys {
-        static let sensitivity = "settings.sensitivity"
         static let alertType = "settings.alertType"
-        static let alertSound = "settings.alertSound"
-        static let soundMode = "settings.soundMode"
-        static let cooldownSeconds = "settings.cooldownSeconds"
         static let cameraID = "settings.cameraID"
         static let blurOnTouch = "settings.blurOnTouch"
         static let blurIntensity = "settings.blurIntensity"

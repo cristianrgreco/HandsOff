@@ -6,8 +6,6 @@ import QuartzCore
 import Vision
 
 struct DetectionSettings {
-    let sensitivity: Sensitivity
-    let cooldownSeconds: Double
     let cameraID: String?
 }
 
@@ -46,10 +44,11 @@ final class DetectionEngine: NSObject {
     private var lastFaceBoundingBox: CGRect?
     private var lastFaceTime: CFTimeInterval = 0
     private var lastFrameTime: CFTimeInterval = 0
-    private var lastTriggerTime: CFTimeInterval = 0
     private var lastPreviewTime: CFTimeInterval = 0
     private var recentHits: [Bool] = []
+    private var hasActiveTrigger = false
     private let ciContext = CIContext()
+    private let sensitivity: Sensitivity = .low
 
     private let confidenceThreshold: Float = 0.25
     private let frameInterval: CFTimeInterval = 1.0 / 12.0
@@ -184,8 +183,8 @@ final class DetectionEngine: NSObject {
         lastFaceBoundingBox = nil
         lastFaceTime = 0
         lastFrameTime = 0
-        lastTriggerTime = 0
         lastPreviewTime = 0
+        hasActiveTrigger = false
     }
 
     private func startSessionMonitor() {
@@ -314,32 +313,33 @@ final class DetectionEngine: NSObject {
         )
 
         guard let faceBox else {
-            updateHit(false, settings: settings)
+            updateHit(false)
             emitObservation(faceZone: nil, hit: false)
             return
         }
 
-        let faceZone = expandedRect(faceBox, by: settings.sensitivity.zoneExpansion)
+        let faceZone = expandedRect(faceBox, by: sensitivity.zoneExpansion)
         let hit = points.contains { faceZone.contains($0) }
-        updateHit(hit, settings: settings)
+        updateHit(hit)
         emitObservation(faceZone: faceZone, hit: hit)
     }
 
-    private func updateHit(_ hit: Bool, settings: DetectionSettings) {
+    private func updateHit(_ hit: Bool) {
         recentHits.append(hit)
-        if recentHits.count > settings.sensitivity.debounceWindow {
+        if recentHits.count > sensitivity.debounceWindow {
             recentHits.removeFirst()
         }
 
         let hits = recentHits.filter { $0 }.count
-        guard hits >= settings.sensitivity.hitThreshold else { return }
-        guard hit else { return }
-
-        let now = CACurrentMediaTime()
-        guard now - lastTriggerTime >= settings.cooldownSeconds else { return }
-        lastTriggerTime = now
-
-        onTrigger()
+        let debouncedHit = hits >= sensitivity.hitThreshold
+        if debouncedHit && hit {
+            if !hasActiveTrigger {
+                hasActiveTrigger = true
+                onTrigger()
+            }
+        } else if !hit {
+            hasActiveTrigger = false
+        }
     }
 
     private func emitPreview(_ pixelBuffer: CVPixelBuffer, now: CFTimeInterval) {
@@ -414,7 +414,7 @@ final class DetectionEngine: NSObject {
         }
 
         guard let cached = lastFaceBoundingBox else { return nil }
-        let cachedZone = expandedRect(cached, by: settings.sensitivity.zoneExpansion)
+        let cachedZone = expandedRect(cached, by: sensitivity.zoneExpansion)
         if handPoints.contains(where: cachedZone.contains) {
             // Keep cached face while the hand still overlaps the last zone.
             lastFaceTime = now

@@ -12,7 +12,6 @@ UI/UX improvements
 - Sensitivity should just be hardcoded to low I think, why should it not be as accurate as possible?
 - Cooldown also just hardcoded to 1s for now I think. If the alert is annoying then what are we doing here?
 
-- Can the stats picker be left aligned?
 - Should the whole menu be wider now that it's quite tall?
 
 Bugs

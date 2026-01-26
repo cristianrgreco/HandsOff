@@ -1,4 +1,3 @@
-import AppKit
 import AVFoundation
 import Foundation
 import UserNotifications
@@ -15,16 +14,15 @@ final class AlertManager {
         }
     }
 
-    func trigger(alertType: AlertType, alertSound: AlertSound) {
+    func trigger(alertType: AlertType) {
         switch alertType {
         case .off:
             return
         case .chime:
-            playSound(alertSound)
+            return
         case .banner:
             postBanner()
         case .both:
-            playSound(alertSound)
             postBanner()
         }
     }
@@ -35,16 +33,6 @@ final class AlertManager {
 
     func stopContinuous() {
         tonePlayer.stop()
-    }
-
-    private func playSound(_ sound: AlertSound) {
-        if let systemSound = NSSound(named: NSSound.Name(sound.systemSoundName)) {
-            systemSound.stop()
-            systemSound.currentTime = 0
-            systemSound.play()
-        } else {
-            NSSound.beep()
-        }
     }
 
     private func postBanner() {

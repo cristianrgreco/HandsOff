@@ -40,22 +40,12 @@ final class AppState: ObservableObject {
         self.detectionEngine = DetectionEngine(
             settingsProvider: {
                 DetectionSettings(
-                    sensitivity: settings.sensitivity,
-                    cooldownSeconds: settings.cooldownSeconds,
                     cameraID: settings.cameraID
                 )
             },
             onTrigger: { [weak alertManager, weak settings] in
                 guard let settings else { return }
-                let alertSound = settings.alertSound
-                let alertType = settings.alertType
-                if settings.soundMode == .continuous {
-                    if alertType.usesBanner {
-                        alertManager?.trigger(alertType: .banner, alertSound: alertSound)
-                    }
-                    return
-                }
-                alertManager?.trigger(alertType: alertType, alertSound: alertSound)
+                alertManager?.trigger(alertType: settings.alertType)
             }
         )
 
@@ -242,7 +232,7 @@ final class AppState: ObservableObject {
     }
 
     private func updateContinuousSound(isHit: Bool) {
-        guard settings.alertType.usesSound, settings.soundMode == .continuous else {
+        guard settings.alertType.usesSound else {
             alertManager.stopContinuous()
             return
         }
