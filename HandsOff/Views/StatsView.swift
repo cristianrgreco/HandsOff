@@ -16,8 +16,7 @@ struct StatsView: View {
                 Text("Today")
                 Spacer()
                 Text("\(stats.alertsToday)")
-                    .font(.title3)
-                    .fontDesign(.rounded)
+                    .font(.body)
                     .monospacedDigit()
             }
 

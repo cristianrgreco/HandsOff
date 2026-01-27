@@ -16,7 +16,7 @@ struct SettingsView: View {
 
             sectionHeader("Detection")
             HStack {
-                Text("Face zone size")
+                Text("Area size")
                 Spacer()
                 Text(faceZoneScaleLabel)
                     .font(.caption)
