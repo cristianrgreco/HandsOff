@@ -33,4 +33,3 @@ For fast iteration:
 
 ## Notes
 - The app will request camera permission on first run.
-- If you connect/disconnect webcams, the app switches to the next available camera.
