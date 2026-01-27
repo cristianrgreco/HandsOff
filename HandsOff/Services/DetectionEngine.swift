@@ -46,7 +46,6 @@ final class DetectionEngine: NSObject {
     private var lastFaceBoundingBox: CGRect?
     private var lastFaceTime: CFTimeInterval = 0
     private var lastFrameTime: CFTimeInterval = 0
-    private var recentHits: [Bool] = []
     private var hasActiveTrigger = false
     private let ciContext = CIContext()
     private let sensitivity: Sensitivity = .low
@@ -185,7 +184,6 @@ final class DetectionEngine: NSObject {
     }
 
     private func resetState() {
-        recentHits.removeAll()
         lastFaceBoundingBox = nil
         lastFaceTime = 0
         lastFrameTime = 0
@@ -303,8 +301,8 @@ final class DetectionEngine: NSObject {
 
         let previousFrameTime = withStateLock { lastFrameTime }
         if previousFrameTime > 0 && now - previousFrameTime > staleFrameThreshold {
-            // Clear stale hits after long gaps to avoid delayed triggers.
-            recentHits.removeAll()
+            // Reset trigger state after long gaps.
+            hasActiveTrigger = false
         }
         let shouldProcess = withStateLock { () -> Bool in
             if lastFrameTime > 0 && now - lastFrameTime < frameInterval {
@@ -329,19 +327,12 @@ final class DetectionEngine: NSObject {
     }
 
     private func updateHit(_ hit: Bool) {
-        recentHits.append(hit)
-        if recentHits.count > sensitivity.debounceWindow {
-            recentHits.removeFirst()
-        }
-
-        let hits = recentHits.filter { $0 }.count
-        let debouncedHit = hits >= sensitivity.hitThreshold
-        if debouncedHit && hit {
+        if hit {
             if !hasActiveTrigger {
                 hasActiveTrigger = true
                 onTrigger()
             }
-        } else if !debouncedHit {
+        } else {
             hasActiveTrigger = false
         }
     }
