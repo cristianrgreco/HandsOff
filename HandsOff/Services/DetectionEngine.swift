@@ -7,6 +7,7 @@ import Vision
 
 struct DetectionSettings {
     let cameraID: String?
+    let faceZoneScale: CGFloat
 }
 
 struct DetectionObservation {
@@ -51,6 +52,7 @@ final class DetectionEngine: NSObject {
     private let sensitivity: Sensitivity = .low
 
     private let confidenceThreshold: Float = 0.25
+    private let hairTopMargin: CGFloat = 0.25
     private let frameInterval: CFTimeInterval = 1.0 / 12.0
     private let staleFrameThreshold: CFTimeInterval = 1.0
     private let faceCacheDuration: CFTimeInterval = 2.0
@@ -304,10 +306,12 @@ final class DetectionEngine: NSObject {
         }
 
         let points = handPoints(from: handRequest.results)
+        let detectionSettings = settingsProvider()
         let faceBox = resolveFaceBox(
             face: faceRequest.results?.first,
             handPoints: points,
-            now: now
+            now: now,
+            faceZoneScale: detectionSettings.faceZoneScale
         )
 
         guard let faceBox else {
@@ -316,7 +320,7 @@ final class DetectionEngine: NSObject {
             return
         }
 
-        let faceZone = expandedRect(faceBox, by: sensitivity.zoneExpansion)
+        let faceZone = faceZone(for: faceBox, scale: detectionSettings.faceZoneScale)
         let hit = points.contains { faceZone.contains($0) }
         updateHit(hit)
         emitObservation(faceZone: faceZone, hit: hit)
@@ -393,6 +397,37 @@ final class DetectionEngine: NSObject {
         return expanded
     }
 
+    private func scaledRect(_ rect: CGRect, scale: CGFloat) -> CGRect {
+        guard scale != 1 else { return rect }
+        let centerX = rect.midX
+        let centerY = rect.midY
+        let scaledWidth = rect.width * scale
+        let scaledHeight = rect.height * scale
+        let originX = centerX - scaledWidth / 2
+        let originY = centerY - scaledHeight / 2
+        return expandedRect(
+            CGRect(x: originX, y: originY, width: scaledWidth, height: scaledHeight),
+            by: 0
+        )
+    }
+
+    private func rectIncludingHair(_ rect: CGRect) -> CGRect {
+        let extraHeight = rect.height * hairTopMargin
+        let expanded = CGRect(
+            x: rect.origin.x,
+            y: rect.origin.y,
+            width: rect.width,
+            height: rect.height + extraHeight
+        )
+        return expandedRect(expanded, by: 0)
+    }
+
+    private func faceZone(for faceBox: CGRect, scale: CGFloat) -> CGRect {
+        let scaledFace = scaledRect(faceBox, scale: scale)
+        let hairFace = rectIncludingHair(scaledFace)
+        return expandedRect(hairFace, by: sensitivity.zoneExpansion)
+    }
+
     private func emitObservation(faceZone: CGRect?, hit: Bool) {
         DispatchQueue.main.async {
             self.onObservation(DetectionObservation(hit: hit, faceZone: faceZone))
@@ -402,7 +437,8 @@ final class DetectionEngine: NSObject {
     private func resolveFaceBox(
         face: VNFaceObservation?,
         handPoints: [CGPoint],
-        now: CFTimeInterval
+        now: CFTimeInterval,
+        faceZoneScale: CGFloat
     ) -> CGRect? {
         if let face {
             lastFaceBoundingBox = face.boundingBox
@@ -411,7 +447,7 @@ final class DetectionEngine: NSObject {
         }
 
         guard let cached = lastFaceBoundingBox else { return nil }
-        let cachedZone = expandedRect(cached, by: sensitivity.zoneExpansion)
+        let cachedZone = faceZone(for: cached, scale: faceZoneScale)
         if handPoints.contains(where: cachedZone.contains) {
             // Keep cached face while the hand still overlaps the last zone.
             lastFaceTime = now

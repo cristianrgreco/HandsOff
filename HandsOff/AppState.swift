@@ -41,7 +41,8 @@ final class AppState: ObservableObject {
         self.detectionEngine = DetectionEngine(
             settingsProvider: {
                 DetectionSettings(
-                    cameraID: settings.cameraID
+                    cameraID: settings.cameraID,
+                    faceZoneScale: CGFloat(settings.faceZoneScale * SettingsStore.faceZoneBaselineScale)
                 )
             },
             onTrigger: { [weak alertManager, weak settings] in

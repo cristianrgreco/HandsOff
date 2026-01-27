@@ -14,6 +14,16 @@ struct SettingsView: View {
             sectionHeader("Camera")
             cameraPicker
 
+            sectionHeader("Detection")
+            HStack {
+                Text("Face zone size")
+                Spacer()
+                Text(faceZoneScaleLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Slider(value: $settings.faceZoneScale, in: SettingsStore.faceZoneScaleRange, step: 0.01)
+
             sectionHeader("Alerts")
             Toggle("Sound", isOn: $settings.alertSoundEnabled)
             Toggle("Flash screen", isOn: $settings.flashScreenOnTouch)
@@ -45,5 +55,9 @@ struct SettingsView: View {
             }
             .pickerStyle(.menu)
         }
+    }
+
+    private var faceZoneScaleLabel: String {
+        "\(Int((settings.faceZoneScale * 100).rounded()))%"
     }
 }
