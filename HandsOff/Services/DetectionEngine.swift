@@ -49,7 +49,7 @@ final class DetectionEngine: NSObject {
     private let ciContext = CIContext()
     private let sensitivity: Sensitivity = .low
 
-    private let confidenceThreshold: Float = 0.25
+    private let confidenceThreshold: Float = 0.75
     private let hairTopMargin: CGFloat = 0.25
     private let frameInterval: CFTimeInterval = 1.0 / 12.0
     private let staleFrameThreshold: CFTimeInterval = 1.0
