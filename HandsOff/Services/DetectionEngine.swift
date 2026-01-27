@@ -27,7 +27,6 @@ final class DetectionEngine: NSObject {
     private let session = AVCaptureSession()
     private let sessionQueue = DispatchQueue(label: "HandsOff.CaptureSession")
     private let visionQueue = DispatchQueue(label: "HandsOff.Vision")
-    private let stateLock = NSLock()
 
     private let output = AVCaptureVideoDataOutput()
     private let settingsProvider: () -> DetectionSettings
@@ -102,10 +101,7 @@ final class DetectionEngine: NSObject {
 
     func stop() {
         sessionQueue.async {
-            self.withStateLock {
-                self.isRunning = false
-                self.isInterrupted = false
-            }
+            self.isRunning = false
             self.stopSessionMonitor()
             if self.session.isRunning {
                 self.session.stopRunning()
@@ -125,13 +121,8 @@ final class DetectionEngine: NSObject {
                 self.isConfigured = true
             }
 
-            self.visionQueue.sync {
-                self.resetState()
-            }
-            self.withStateLock {
-                self.isRunning = true
-                self.isInterrupted = false
-            }
+            self.resetState()
+            self.isRunning = true
             if !self.session.isRunning {
                 self.session.startRunning()
             }
@@ -195,19 +186,15 @@ final class DetectionEngine: NSObject {
         let timer = DispatchSource.makeTimerSource(queue: sessionQueue)
         timer.schedule(deadline: .now() + 2, repeating: 2)
         timer.setEventHandler { [weak self] in
-            guard let self else { return }
-            let isRunning = self.withStateLock { self.isRunning }
-            guard isRunning else { return }
-            let isInterrupted = self.withStateLock { self.isInterrupted }
-            guard !isInterrupted else { return }
+            guard let self, self.isRunning else { return }
+            guard !self.isInterrupted else { return }
             if !self.session.isRunning {
                 self.session.startRunning()
                 self.resetFrameClock()
                 return
             }
             let now = CACurrentMediaTime()
-            let lastFrameTime = self.withStateLock { self.lastFrameTime }
-            if lastFrameTime > 0, now - lastFrameTime > 2.5 {
+            if self.lastFrameTime > 0, now - self.lastFrameTime > 2.5 {
                 self.restartSession()
             }
         }
@@ -241,11 +228,8 @@ final class DetectionEngine: NSObject {
                 queue: .main
             ) { [weak self] _ in
                 self?.sessionQueue.async {
-                    guard let self else { return }
-                    self.withStateLock {
-                        self.isInterrupted = false
-                    }
-                    self.restartSession()
+                    self?.isInterrupted = false
+                    self?.restartSession()
                 }
             }
         )
@@ -263,9 +247,7 @@ final class DetectionEngine: NSObject {
     }
 
     private func handleSessionInterrupted(_ notification: Notification) {
-        withStateLock {
-            isInterrupted = true
-        }
+        isInterrupted = true
     }
 
     private func handleSessionRuntimeError(_ notification: Notification) {
@@ -276,7 +258,6 @@ final class DetectionEngine: NSObject {
     }
 
     private func restartSession() {
-        let isRunning = withStateLock { self.isRunning }
         guard isRunning else { return }
         session.stopRunning()
         session.startRunning()
@@ -284,9 +265,7 @@ final class DetectionEngine: NSObject {
     }
 
     private func resetFrameClock() {
-        withStateLock {
-            lastFrameTime = 0
-        }
+        lastFrameTime = 0
     }
 
     private func complete(_ error: DetectionStartError?, completion: @escaping (DetectionStartError?) -> Void) {
@@ -299,17 +278,16 @@ final class DetectionEngine: NSObject {
         let now = CACurrentMediaTime()
         let previewIsEnabled = previewEnabled
 
-        let previousFrameTime = withStateLock { lastFrameTime }
-        if previousFrameTime > 0 && now - previousFrameTime > staleFrameThreshold {
+        if lastFrameTime > 0 && now - lastFrameTime > staleFrameThreshold {
             // Reset trigger state after long gaps.
             hasActiveTrigger = false
         }
-        let shouldProcess = withStateLock { () -> Bool in
-            if lastFrameTime > 0 && now - lastFrameTime < frameInterval {
-                return false
-            }
+        let shouldProcess: Bool
+        if lastFrameTime > 0 && now - lastFrameTime < frameInterval {
+            shouldProcess = false
+        } else {
             lastFrameTime = now
-            return true
+            shouldProcess = true
         }
         if previewIsEnabled {
             // When the preview is open, render every incoming frame.
@@ -481,12 +459,6 @@ final class DetectionEngine: NSObject {
         guard now - lastFaceTime <= faceCacheDuration else { return nil }
         return cached
     }
-
-    private func withStateLock<T>(_ body: () -> T) -> T {
-        stateLock.lock()
-        defer { stateLock.unlock() }
-        return body()
-    }
 }
 
 extension DetectionEngine: AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -495,7 +467,6 @@ extension DetectionEngine: AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
-        let isRunning = withStateLock { self.isRunning }
         guard isRunning else { return }
         guard !isProcessing else { return }
 
