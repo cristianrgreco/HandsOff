@@ -6,6 +6,7 @@ import Foundation
 
 final class AppState: ObservableObject {
     @Published private(set) var isMonitoring = false
+    @Published private(set) var isStarting = false
     @Published var lastError: DetectionStartError?
     @Published var previewHit = false
     @Published var previewFaceZone: CGRect?
@@ -22,13 +23,14 @@ final class AppState: ObservableObject {
     private let loginItemManager = LoginItemManager()
     private let stateDefaults = UserDefaults.standard
     private var monitoringActivity: NSObjectProtocol?
-    private var isStarting = false
     private var isUpdatingLoginItem = false
     private var isTouching = false
     private var touchReleaseStart: CFTimeInterval?
     private var snoozeTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private let touchReleaseDebounce: CFTimeInterval = 0.3
+    private var resumeMonitoringWhenCameraAvailable = false
+    private var deviceObservers: [NSObjectProtocol] = []
 
     private lazy var detectionEngine: DetectionEngine = DetectionEngine(
         settingsProvider: { [weak self] in
@@ -124,30 +126,23 @@ final class AppState: ObservableObject {
             }
             .store(in: &cancellables)
 
+        deviceObservers.append(
+            NotificationCenter.default.addObserver(
+                forName: .AVCaptureDeviceWasDisconnected,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                guard let self else { return }
+                guard let device = notification.object as? AVCaptureDevice else { return }
+                guard device.uniqueID == self.settings.cameraID else { return }
+                self.cameraStore.refresh()
+                self.syncCameraSelection()
+            }
+        )
+
         cameraStore.$devices
             .sink { [weak self] _ in
-                guard let self else { return }
-                let devices = self.cameraStore.devices
-                let storedID = self.settings.cameraID
-                let isStoredAvailable = storedID.flatMap { id in
-                    devices.first(where: { $0.uniqueID == id })
-                } != nil
-
-                if devices.isEmpty {
-                    if storedID != nil {
-                        self.settings.cameraID = nil
-                    }
-                    if self.isMonitoring && !self.isStarting {
-                        self.stopMonitoring()
-                    }
-                    return
-                }
-
-                guard storedID == nil || !isStoredAvailable else { return }
-                let preferred = self.cameraStore.preferredDeviceID(storedID: storedID)
-                if preferred != storedID {
-                    self.settings.cameraID = preferred
-                }
+                self?.syncCameraSelection()
             }
             .store(in: &cancellables)
 
@@ -172,6 +167,38 @@ final class AppState: ObservableObject {
         }
     }
 
+    deinit {
+        deviceObservers.forEach { NotificationCenter.default.removeObserver($0) }
+    }
+
+    private func syncCameraSelection() {
+        let devices = cameraStore.devices
+        let storedID = settings.cameraID
+
+        if devices.isEmpty {
+            if storedID != nil {
+                settings.cameraID = nil
+            }
+            if isMonitoring || isStarting {
+                resumeMonitoringWhenCameraAvailable = true
+                stopMonitoring()
+            }
+            return
+        }
+
+        let preferred = cameraStore.preferredDeviceID(storedID: storedID)
+        if preferred != storedID {
+            settings.cameraID = preferred
+        }
+
+        if resumeMonitoringWhenCameraAvailable {
+            resumeMonitoringWhenCameraAvailable = false
+            if !isMonitoring && !isStarting {
+                startMonitoring()
+            }
+        }
+    }
+
     private func requestCameraAccessIfNeeded() {
         let status = AVCaptureDevice.authorizationStatus(for: .video)
         guard status == .notDetermined else { return }
@@ -179,7 +206,7 @@ final class AppState: ObservableObject {
     }
 
     func toggleMonitoring() {
-        if isMonitoring {
+        if isMonitoring || isStarting {
             stopMonitoring()
         } else {
             startMonitoring()
@@ -188,9 +215,10 @@ final class AppState: ObservableObject {
 
     func startMonitoring() {
         guard !isMonitoring, !isStarting else { return }
-        if settings.cameraID == nil {
-            cameraStore.refresh()
-            settings.cameraID = cameraStore.preferredDeviceID(storedID: nil)
+        cameraStore.refresh()
+        let availableDevices = cameraStore.devices
+        if settings.cameraID == nil || availableDevices.contains(where: { $0.uniqueID == settings.cameraID }) == false {
+            settings.cameraID = cameraStore.preferredDeviceID(storedID: settings.cameraID)
         }
         lastError = nil
         isStarting = true

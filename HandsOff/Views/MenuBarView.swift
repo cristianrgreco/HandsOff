@@ -70,15 +70,17 @@ struct MenuBarView: View {
                     .controlSize(.small)
                     .help("Snooze alerts")
                 }
+            }
+            if appState.isMonitoring || appState.isStarting {
                 Button {
                     appState.toggleMonitoring()
                 } label: {
-                    Text("Stop")
+                    Text(appState.isMonitoring ? "Stop" : "Cancel")
                 }
                 .buttonStyle(.bordered)
                 .tint(.red)
                 .controlSize(.small)
-                .help("Stop monitoring")
+                .help(appState.isMonitoring ? "Stop monitoring" : "Cancel start")
             } else {
                 Button {
                     appState.toggleMonitoring()
@@ -95,6 +97,9 @@ struct MenuBarView: View {
     }
 
     private var statusText: String {
+        if appState.isStarting {
+            return "Starting..."
+        }
         if appState.isMonitoring {
             return appState.isSnoozed ? "Monitoring snoozed" : "Monitoring on"
         }
@@ -102,6 +107,9 @@ struct MenuBarView: View {
     }
 
     private var statusColor: Color {
+        if appState.isStarting {
+            return .orange
+        }
         if appState.isMonitoring {
             return appState.isSnoozed ? .orange : .green
         }
@@ -133,6 +141,8 @@ struct MenuBarView: View {
                 } else {
                     previewPlaceholder(text: "Waiting for camera...")
                 }
+            } else if appState.isStarting {
+                previewPlaceholder(text: "Starting camera...")
             } else {
                 previewPlaceholder(text: "Start monitoring to show the camera feed.")
             }

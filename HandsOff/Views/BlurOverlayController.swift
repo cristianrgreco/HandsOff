@@ -57,8 +57,9 @@ final class BlurOverlayController {
     }
 
     private func makeWindow(for screen: NSScreen) -> NSWindow {
+        let size = screen.frame.size
         let window = NSWindow(
-            contentRect: screen.frame,
+            contentRect: CGRect(origin: .zero, size: size),
             styleMask: [.borderless],
             backing: .buffered,
             defer: false,

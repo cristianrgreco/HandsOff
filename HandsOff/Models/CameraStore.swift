@@ -21,7 +21,7 @@ final class CameraStore: ObservableObject {
             mediaType: .video,
             position: .unspecified
         )
-        devices = discovery.devices
+        devices = discovery.devices.filter { $0.isConnected }
     }
 
     func preferredDeviceID(storedID: String?) -> String? {
