@@ -89,6 +89,18 @@ final class AppState: ObservableObject {
             }
             .store(in: &cancellables)
 
+        settings.$alertSoundEnabled
+            .sink { [weak self] enabled in
+                guard let self else { return }
+                guard self.isMonitoring else { return }
+                if enabled {
+                    self.alertManager.prepareContinuous()
+                } else {
+                    self.alertManager.shutdownContinuous()
+                }
+            }
+            .store(in: &cancellables)
+
         if loginItemManager.isSupported {
             let enabled = loginItemManager.isEnabled()
             if settings.startAtLogin != enabled {
@@ -194,6 +206,9 @@ final class AppState: ObservableObject {
             self.stateDefaults.set(true, forKey: Self.resumeMonitoringKey)
             self.stats.beginMonitoring()
             self.beginMonitoringActivity()
+            if self.settings.alertSoundEnabled {
+                self.alertManager.prepareContinuous()
+            }
         }
     }
 
@@ -203,8 +218,8 @@ final class AppState: ObservableObject {
         stats.endMonitoring()
         endMonitoringActivity()
         blurOverlay.hide()
-        alertManager.stopContinuous()
         clearSnooze()
+        alertManager.shutdownContinuous()
         stateDefaults.set(false, forKey: Self.resumeMonitoringKey)
         resetTouchState()
         isMonitoring = false
