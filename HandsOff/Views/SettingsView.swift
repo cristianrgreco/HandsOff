@@ -11,6 +11,9 @@ struct SettingsView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
 
+            sectionHeader("System")
+            Toggle("Start at login", isOn: $settings.startAtLogin)
+
             sectionHeader("Camera")
             cameraPicker
 
@@ -28,9 +31,6 @@ struct SettingsView: View {
             Toggle("Sound", isOn: $settings.alertSoundEnabled)
             Toggle("Flash screen", isOn: $settings.flashScreenOnTouch)
             Toggle("Notification banner", isOn: $settings.alertBannerEnabled)
-
-            sectionHeader("System")
-            Toggle("Start at login", isOn: $settings.startAtLogin)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

@@ -24,6 +24,7 @@ struct MenuBarView: View {
             card { previewSection }
             card { StatsView(stats: appState.stats) }
             card { SettingsView(settings: appState.settings, cameraStore: appState.cameraStore) }
+            footer
         }
         .padding(12)
         .frame(width: 340)
@@ -90,14 +91,6 @@ struct MenuBarView: View {
                 .help("Start monitoring")
             }
 
-            Button {
-                NSApplication.shared.terminate(nil)
-            } label: {
-                Text("Quit")
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-            .help("Quit Hands Off")
         }
     }
 
@@ -184,5 +177,18 @@ struct MenuBarView: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(Color(nsColor: .separatorColor).opacity(0.5), lineWidth: 1)
             )
+    }
+
+    private var footer: some View {
+        HStack {
+            Spacer()
+            Button("Quit") {
+                NSApplication.shared.terminate(nil)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .help("Quit Hands Off")
+        }
+        .padding(.top, 2)
     }
 }
