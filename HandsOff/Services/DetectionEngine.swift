@@ -46,7 +46,6 @@ final class DetectionEngine: NSObject {
     private var lastFaceBoundingBox: CGRect?
     private var lastFaceTime: CFTimeInterval = 0
     private var lastFrameTime: CFTimeInterval = 0
-    private var lastPreviewTime: CFTimeInterval = 0
     private var recentHits: [Bool] = []
     private var hasActiveTrigger = false
     private let ciContext = CIContext()
@@ -57,7 +56,6 @@ final class DetectionEngine: NSObject {
     private let frameInterval: CFTimeInterval = 1.0 / 12.0
     private let staleFrameThreshold: CFTimeInterval = 1.0
     private let faceCacheDuration: CFTimeInterval = 2.0
-    private let previewInterval: CFTimeInterval = 1.0 / 12.0
 
     init(
         settingsProvider: @escaping () -> DetectionSettings,
@@ -81,9 +79,6 @@ final class DetectionEngine: NSObject {
     func setPreviewEnabled(_ enabled: Bool) {
         visionQueue.async {
             self.previewEnabled = enabled
-            if !enabled {
-                self.lastPreviewTime = 0
-            }
         }
     }
 
@@ -194,7 +189,6 @@ final class DetectionEngine: NSObject {
         lastFaceBoundingBox = nil
         lastFaceTime = 0
         lastFrameTime = 0
-        lastPreviewTime = 0
         hasActiveTrigger = false
     }
 
@@ -305,6 +299,8 @@ final class DetectionEngine: NSObject {
 
     private func processFrame(_ sampleBuffer: CMSampleBuffer) {
         let now = CACurrentMediaTime()
+        let previewIsEnabled = previewEnabled
+
         let previousFrameTime = withStateLock { lastFrameTime }
         if previousFrameTime > 0 && now - previousFrameTime > staleFrameThreshold {
             // Clear stale hits after long gaps to avoid delayed triggers.
@@ -317,11 +313,40 @@ final class DetectionEngine: NSObject {
             lastFrameTime = now
             return true
         }
+        if previewIsEnabled {
+            // When the preview is open, render every incoming frame.
+            guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+            emitPreview(pixelBuffer)
+            guard shouldProcess else { return }
+            detect(on: pixelBuffer, now: now)
+            return
+        }
+
+        // When the preview is closed, avoid extra work on throttled frames.
         guard shouldProcess else { return }
-
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        emitPreview(pixelBuffer, now: now)
+        detect(on: pixelBuffer, now: now)
+    }
 
+    private func updateHit(_ hit: Bool) {
+        recentHits.append(hit)
+        if recentHits.count > sensitivity.debounceWindow {
+            recentHits.removeFirst()
+        }
+
+        let hits = recentHits.filter { $0 }.count
+        let debouncedHit = hits >= sensitivity.hitThreshold
+        if debouncedHit && hit {
+            if !hasActiveTrigger {
+                hasActiveTrigger = true
+                onTrigger()
+            }
+        } else if !debouncedHit {
+            hasActiveTrigger = false
+        }
+    }
+
+    private func detect(on pixelBuffer: CVPixelBuffer, now: CFTimeInterval) {
         let faceRequest = VNDetectFaceLandmarksRequest()
         let handRequest = VNDetectHumanHandPoseRequest()
         handRequest.maximumHandCount = 2
@@ -354,28 +379,8 @@ final class DetectionEngine: NSObject {
         emitObservation(faceZone: faceZone, hit: hit)
     }
 
-    private func updateHit(_ hit: Bool) {
-        recentHits.append(hit)
-        if recentHits.count > sensitivity.debounceWindow {
-            recentHits.removeFirst()
-        }
-
-        let hits = recentHits.filter { $0 }.count
-        let debouncedHit = hits >= sensitivity.hitThreshold
-        if debouncedHit && hit {
-            if !hasActiveTrigger {
-                hasActiveTrigger = true
-                onTrigger()
-            }
-        } else if !debouncedHit {
-            hasActiveTrigger = false
-        }
-    }
-
-    private func emitPreview(_ pixelBuffer: CVPixelBuffer, now: CFTimeInterval) {
+    private func emitPreview(_ pixelBuffer: CVPixelBuffer) {
         guard previewEnabled else { return }
-        guard now - lastPreviewTime >= previewInterval else { return }
-        lastPreviewTime = now
         let image = CIImage(cvPixelBuffer: pixelBuffer)
         guard let cgImage = ciContext.createCGImage(image, from: image.extent) else { return }
         DispatchQueue.main.async {
