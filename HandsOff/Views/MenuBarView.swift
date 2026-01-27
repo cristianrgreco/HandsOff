@@ -26,7 +26,7 @@ struct MenuBarView: View {
             card { SettingsView(settings: appState.settings, cameraStore: appState.cameraStore) }
         }
         .padding(12)
-        .frame(width: 320)
+        .frame(width: 340)
     }
 
     private var header: some View {
@@ -36,12 +36,29 @@ struct MenuBarView: View {
                 Text("Hands Off")
                     .font(.headline)
                     .fontDesign(.rounded)
-                Text(appState.isMonitoring ? "Monitoring on" : "Monitoring off")
+                Text(statusText)
                     .font(.caption)
-                    .foregroundStyle(appState.isMonitoring ? .green : .secondary)
+                    .foregroundStyle(statusColor)
+                    .lineLimit(1)
+                    .layoutPriority(1)
             }
             Spacer()
             if appState.isMonitoring {
+                if appState.isSnoozed {
+                    Button("Resume") {
+                        appState.resumeFromSnooze()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help("Resume alerts")
+                } else {
+                    Button("Snooze") {
+                        appState.snoozeForFiveMinutes()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .help("Snooze alerts for 5 minutes")
+                }
                 Button {
                     appState.toggleMonitoring()
                 } label: {
@@ -72,6 +89,20 @@ struct MenuBarView: View {
             .controlSize(.small)
             .help("Quit Hands Off")
         }
+    }
+
+    private var statusText: String {
+        if appState.isMonitoring {
+            return appState.isSnoozed ? "Monitoring snoozed" : "Monitoring on"
+        }
+        return "Monitoring off"
+    }
+
+    private var statusColor: Color {
+        if appState.isMonitoring {
+            return appState.isSnoozed ? .orange : .green
+        }
+        return .secondary
     }
 
     private var previewSection: some View {

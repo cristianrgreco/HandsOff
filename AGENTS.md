@@ -1,2 +1,3 @@
-- After completing a change, run `scripts/build_and_run.sh` to build and relaunch the app.
+- After completing a change, run `scripts/build_and_run.sh` to build and relaunch the app. 
+  - Running these scripts requires sandbox escalation as re-launching the app runs a `killall` command, ask for it.
 - Running git commands requires sandbox escalation, ask for it.

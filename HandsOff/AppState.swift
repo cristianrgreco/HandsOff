@@ -10,13 +10,13 @@ final class AppState: ObservableObject {
     @Published var previewHit = false
     @Published var previewFaceZone: CGRect?
     @Published var previewImage: CGImage?
+    @Published private(set) var snoozedUntil: Date?
 
     let settings: SettingsStore
     let stats: StatsStore
     let cameraStore: CameraStore
 
     private let alertManager: AlertManager
-    private let detectionEngine: DetectionEngine
     private let blurOverlay = BlurOverlayController()
     private let loginItemManager = LoginItemManager()
     private let stateDefaults = UserDefaults.standard
@@ -25,8 +25,29 @@ final class AppState: ObservableObject {
     private var isUpdatingLoginItem = false
     private var isTouching = false
     private var touchReleaseStart: CFTimeInterval?
+    private var snoozeTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private let touchReleaseDebounce: CFTimeInterval = 0.3
+
+    private lazy var detectionEngine: DetectionEngine = DetectionEngine(
+        settingsProvider: { [weak self] in
+            guard let self else {
+                return DetectionSettings(cameraID: nil, faceZoneScale: CGFloat(SettingsStore.faceZoneBaselineScale))
+            }
+            return DetectionSettings(
+                cameraID: self.settings.cameraID,
+                faceZoneScale: CGFloat(self.settings.faceZoneScale * SettingsStore.faceZoneBaselineScale)
+            )
+        },
+        onTrigger: { [weak self] in
+            self?.handleTrigger()
+        }
+    )
+
+    var isSnoozed: Bool {
+        guard let snoozedUntil else { return false }
+        return snoozedUntil > Date()
+    }
 
     init() {
         let settings = SettingsStore()
@@ -38,20 +59,6 @@ final class AppState: ObservableObject {
         self.stats = stats
         self.cameraStore = cameraStore
         self.alertManager = alertManager
-        self.detectionEngine = DetectionEngine(
-            settingsProvider: {
-                DetectionSettings(
-                    cameraID: settings.cameraID,
-                    faceZoneScale: CGFloat(settings.faceZoneScale * SettingsStore.faceZoneBaselineScale)
-                )
-            },
-            onTrigger: { [weak alertManager, weak settings] in
-                guard let settings else { return }
-                if settings.alertBannerEnabled {
-                    alertManager?.postBanner()
-                }
-            }
-        )
         migrateResumeMonitoringStateIfNeeded()
 
         detectionEngine.setObservationHandler { [weak self] observation in
@@ -197,6 +204,7 @@ final class AppState: ObservableObject {
         endMonitoringActivity()
         blurOverlay.hide()
         alertManager.stopContinuous()
+        clearSnooze()
         stateDefaults.set(false, forKey: Self.resumeMonitoringKey)
         resetTouchState()
         isMonitoring = false
@@ -219,6 +227,10 @@ final class AppState: ObservableObject {
             blurOverlay.hide()
             return
         }
+        guard !isSnoozed else {
+            blurOverlay.hide()
+            return
+        }
         if isHit {
             blurOverlay.show()
         } else {
@@ -228,6 +240,10 @@ final class AppState: ObservableObject {
 
     private func updateTouchState(isHit: Bool) {
         guard isMonitoring else { return }
+        guard !isSnoozed else {
+            resetTouchState()
+            return
+        }
         let now = CACurrentMediaTime()
         updateContinuousSound(isHit: isHit)
 
@@ -250,7 +266,7 @@ final class AppState: ObservableObject {
     }
 
     private func updateContinuousSound(isHit: Bool) {
-        guard settings.alertSoundEnabled else {
+        guard settings.alertSoundEnabled, !isSnoozed else {
             alertManager.stopContinuous()
             return
         }
@@ -264,6 +280,41 @@ final class AppState: ObservableObject {
     private func resetTouchState() {
         isTouching = false
         touchReleaseStart = nil
+    }
+
+    func snoozeForFiveMinutes() {
+        snooze(for: 5 * 60)
+    }
+
+    func snooze(for duration: TimeInterval) {
+        let until = Date().addingTimeInterval(duration)
+        setSnoozed(until: until)
+        blurOverlay.hide()
+        alertManager.stopContinuous()
+        resetTouchState()
+    }
+
+    func resumeFromSnooze() {
+        clearSnooze()
+    }
+
+    private func setSnoozed(until: Date) {
+        snoozeTimer?.invalidate()
+        snoozedUntil = until
+
+        let timer = Timer(fireAt: until, interval: 0, target: self, selector: #selector(endSnoozeTimer), userInfo: nil, repeats: false)
+        RunLoop.main.add(timer, forMode: .common)
+        snoozeTimer = timer
+    }
+
+    private func clearSnooze() {
+        snoozeTimer?.invalidate()
+        snoozeTimer = nil
+        snoozedUntil = nil
+    }
+
+    @objc private func endSnoozeTimer() {
+        clearSnooze()
     }
 
     private var shouldResumeMonitoringOnLaunch: Bool {
@@ -300,5 +351,11 @@ final class AppState: ObservableObject {
         guard let monitoringActivity else { return }
         ProcessInfo.processInfo.endActivity(monitoringActivity)
         self.monitoringActivity = nil
+    }
+
+    private func handleTrigger() {
+        guard !isSnoozed else { return }
+        guard settings.alertBannerEnabled else { return }
+        alertManager.postBanner()
     }
 }
