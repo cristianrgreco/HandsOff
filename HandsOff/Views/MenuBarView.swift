@@ -127,7 +127,8 @@ struct MenuBarView: View {
                     PreviewFrameView(
                         image: previewImage,
                         faceZone: appState.previewFaceZone,
-                        isHit: appState.previewHit
+                        isHit: appState.previewHit,
+                        handPoints: appState.previewHandPoints
                     )
                         .frame(maxWidth: .infinity)
                         .frame(height: 160)

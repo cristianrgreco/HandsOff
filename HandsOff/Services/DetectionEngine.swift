@@ -13,6 +13,7 @@ struct DetectionSettings {
 struct DetectionObservation {
     let hit: Bool
     let faceZone: CGRect?
+    let handPoints: [CGPoint]
 }
 
 enum DetectionStartError: String, Error, Identifiable, Equatable {
@@ -338,14 +339,14 @@ final class DetectionEngine: NSObject {
 
         guard let faceBox else {
             updateHit(false)
-            emitObservation(faceZone: nil, hit: false)
+            emitObservation(faceZone: nil, hit: false, handPoints: points)
             return
         }
 
         let faceZone = faceZone(for: faceBox, scale: detectionSettings.faceZoneScale)
         let hit = points.contains { faceZone.contains($0) }
         updateHit(hit)
-        emitObservation(faceZone: faceZone, hit: hit)
+        emitObservation(faceZone: faceZone, hit: hit, handPoints: points)
     }
 
     private func emitPreview(_ pixelBuffer: CVPixelBuffer) {
@@ -430,9 +431,9 @@ final class DetectionEngine: NSObject {
         return expandedRect(hairFace, by: sensitivity.zoneExpansion)
     }
 
-    private func emitObservation(faceZone: CGRect?, hit: Bool) {
+    private func emitObservation(faceZone: CGRect?, hit: Bool, handPoints: [CGPoint]) {
         DispatchQueue.main.async {
-            self.onObservation(DetectionObservation(hit: hit, faceZone: faceZone))
+            self.onObservation(DetectionObservation(hit: hit, faceZone: faceZone, handPoints: handPoints))
         }
     }
 

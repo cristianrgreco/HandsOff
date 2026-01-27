@@ -10,6 +10,7 @@ final class AppState: ObservableObject {
     @Published var previewHit = false
     @Published var previewFaceZone: CGRect?
     @Published var previewImage: CGImage?
+    @Published var previewHandPoints: [CGPoint] = []
     @Published private(set) var snoozedUntil: Date?
 
     let settings: SettingsStore
@@ -65,6 +66,7 @@ final class AppState: ObservableObject {
             guard let self else { return }
             self.previewHit = observation.hit
             self.previewFaceZone = observation.faceZone
+            self.previewHandPoints = observation.handPoints
             self.updateBlurOverlay(isHit: observation.hit)
             self.updateTouchState(isHit: observation.hit)
         }
@@ -223,6 +225,7 @@ final class AppState: ObservableObject {
         stateDefaults.set(false, forKey: Self.resumeMonitoringKey)
         resetTouchState()
         isMonitoring = false
+        previewHandPoints = []
     }
 
     private func restartMonitoring() {
@@ -234,6 +237,7 @@ final class AppState: ObservableObject {
         detectionEngine.setPreviewEnabled(enabled)
         if !enabled {
             previewImage = nil
+            previewHandPoints = []
         }
     }
 
