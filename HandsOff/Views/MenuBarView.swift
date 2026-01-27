@@ -52,12 +52,22 @@ struct MenuBarView: View {
                     .controlSize(.small)
                     .help("Resume alerts")
                 } else {
-                    Button("Snooze") {
-                        appState.snoozeForFiveMinutes()
+                    Menu {
+                        Button("1 minute") {
+                            appState.snooze(for: 60)
+                        }
+                        Button("5 minutes") {
+                            appState.snooze(for: 5 * 60)
+                        }
+                        Button("15 minutes") {
+                            appState.snooze(for: 15 * 60)
+                        }
+                    } label: {
+                        Text("Snooze")
                     }
-                    .buttonStyle(.bordered)
+                    .menuStyle(.borderedButton)
                     .controlSize(.small)
-                    .help("Snooze alerts for 5 minutes")
+                    .help("Snooze alerts")
                 }
                 Button {
                     appState.toggleMonitoring()

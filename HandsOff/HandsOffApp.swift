@@ -8,8 +8,18 @@ struct HandsOffApp: App {
         MenuBarExtra {
             MenuBarView(appState: appState)
         } label: {
-            Image(systemName: appState.isMonitoring ? "hand.raised.fill" : "hand.raised")
+            Image(systemName: menuBarSymbolName)
         }
         .menuBarExtraStyle(.window)
+    }
+
+    private var menuBarSymbolName: String {
+        if !appState.isMonitoring {
+            return "hand.raised"
+        }
+        if appState.isSnoozed {
+            return "hand.raised.slash.fill"
+        }
+        return "hand.raised.fill"
     }
 }

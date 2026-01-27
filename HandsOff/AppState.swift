@@ -282,10 +282,6 @@ final class AppState: ObservableObject {
         touchReleaseStart = nil
     }
 
-    func snoozeForFiveMinutes() {
-        snooze(for: 5 * 60)
-    }
-
     func snooze(for duration: TimeInterval) {
         let until = Date().addingTimeInterval(duration)
         setSnoozed(until: until)
