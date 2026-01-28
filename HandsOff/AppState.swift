@@ -18,12 +18,21 @@ final class AppState: ObservableObject {
 
     let settings: SettingsStore
     let stats: StatsStore
-    let cameraStore: CameraStore
+    let cameraStore: AnyCameraStore
 
-    private let alertManager: AlertManager
-    private let blurOverlay = BlurOverlayController()
-    private let loginItemManager = LoginItemManager()
-    private let stateDefaults = UserDefaults.standard
+    private let alertManager: AlertManaging
+    private let blurOverlay: BlurOverlaying
+    private let loginItemManager: LoginItemManaging
+    private let stateDefaults: UserDefaults
+    private let notificationCenter: NotificationCenter
+    private let timerDriver: TimerDriver
+    private let now: () -> Date
+    private let mediaTime: () -> CFTimeInterval
+    private let openCameraSettingsHandler: () -> Void
+    private let terminateAppHandler: () -> Void
+    private let activityController: ActivityController
+    private let cameraStallAlertPresenter: CameraStallAlertPresenter
+    private let detectionEngineFactory: DetectionEngineFactory
     private var monitoringActivity: NSObjectProtocol?
     private var isUpdatingLoginItem = false
     private var isTouching = false
@@ -39,9 +48,20 @@ final class AppState: ObservableObject {
     private var awaitingCameraSince: CFTimeInterval?
     private let cameraStartTimeout: CFTimeInterval = 6.0
     private var cameraStallAlertShown = false
+    private var isSoundPlaying = false
+    private static let isTesting = {
+        let environment = ProcessInfo.processInfo.environment
+        if ProcessInfo.processInfo.arguments.contains("UI_TESTING") { return true }
+        if environment["UITEST"] == "1" { return true }
+        if environment["XCTestConfigurationFilePath"] != nil { return true }
+        if environment["XCTestBundlePath"] != nil { return true }
+        if environment["XCTestSessionIdentifier"] != nil { return true }
+        return NSClassFromString("XCTest") != nil
+    }()
+        || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 
-    private lazy var detectionEngine: DetectionEngine = DetectionEngine(
-        settingsProvider: { [weak self] in
+    private lazy var detectionEngine: DetectionEngineType = detectionEngineFactory(
+        { [weak self] in
             guard let self else {
                 return DetectionSettings(cameraID: nil, faceZoneScale: CGFloat(SettingsStore.faceZoneBaselineScale))
             }
@@ -50,26 +70,33 @@ final class AppState: ObservableObject {
                 faceZoneScale: CGFloat(self.settings.faceZoneScale * SettingsStore.faceZoneBaselineScale)
             )
         },
-        onTrigger: { [weak self] in
+        { [weak self] in
             self?.handleTrigger()
         }
     )
 
     var isSnoozed: Bool {
         guard let snoozedUntil else { return false }
-        return snoozedUntil > Date()
+        return snoozedUntil > now()
     }
 
-    init() {
-        let settings = SettingsStore()
-        let stats = StatsStore()
-        let cameraStore = CameraStore()
-        let alertManager = AlertManager()
-
-        self.settings = settings
-        self.stats = stats
-        self.cameraStore = cameraStore
-        self.alertManager = alertManager
+    init(dependencies: AppStateDependencies = .live()) {
+        self.settings = dependencies.settings
+        self.stats = dependencies.stats
+        self.cameraStore = AnyCameraStore(dependencies.cameraStore)
+        self.alertManager = dependencies.alertManager
+        self.blurOverlay = dependencies.blurOverlay
+        self.loginItemManager = dependencies.loginItemManager
+        self.stateDefaults = dependencies.userDefaults
+        self.notificationCenter = dependencies.notificationCenter
+        self.timerDriver = dependencies.timerDriver
+        self.now = dependencies.now
+        self.mediaTime = dependencies.mediaTime
+        self.openCameraSettingsHandler = dependencies.openCameraSettings
+        self.terminateAppHandler = dependencies.terminateApp
+        self.activityController = dependencies.activityController
+        self.cameraStallAlertPresenter = dependencies.cameraStallAlertPresenter
+        self.detectionEngineFactory = dependencies.detectionEngineFactory
         migrateResumeMonitoringStateIfNeeded()
 
         detectionEngine.setObservationHandler { [weak self] observation in
@@ -88,8 +115,8 @@ final class AppState: ObservableObject {
 
         detectionEngine.setFrameHandler { [weak self] in
             guard let self else { return }
-            let now = CACurrentMediaTime()
-            self.lastFrameTime = now
+            let currentTime = self.mediaTime()
+            self.lastFrameTime = currentTime
             if self.isAwaitingCamera {
                 self.setAwaitingCamera(false)
             }
@@ -119,6 +146,7 @@ final class AppState: ObservableObject {
                     self.alertManager.prepareContinuous()
                 } else {
                     self.alertManager.shutdownContinuous()
+                    self.isSoundPlaying = false
                 }
             }
             .store(in: &cancellables)
@@ -131,6 +159,7 @@ final class AppState: ObservableObject {
         }
 
         settings.$startAtLogin
+            .dropFirst()
             .sink { [weak self] enabled in
                 guard let self else { return }
                 guard self.loginItemManager.isSupported else { return }
@@ -145,7 +174,7 @@ final class AppState: ObservableObject {
             .store(in: &cancellables)
 
         deviceObservers.append(
-            NotificationCenter.default.addObserver(
+            notificationCenter.addObserver(
                 forName: .AVCaptureDeviceWasDisconnected,
                 object: nil,
                 queue: .main
@@ -158,7 +187,7 @@ final class AppState: ObservableObject {
             }
         )
 
-        cameraStore.$devices
+        cameraStore.devicesPublisher
             .sink { [weak self] _ in
                 self?.syncCameraSelection()
             }
@@ -176,17 +205,20 @@ final class AppState: ObservableObject {
             settings.cameraID = cameraStore.preferredDeviceID(storedID: nil)
         }
 
-        requestCameraAccessIfNeeded()
+        if !Self.isTesting {
+            requestCameraAccessIfNeeded()
+        }
 
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
+            guard !Self.isTesting else { return }
             guard self.shouldResumeMonitoringOnLaunch else { return }
             self.startMonitoring()
         }
     }
 
     deinit {
-        deviceObservers.forEach { NotificationCenter.default.removeObserver($0) }
+        deviceObservers.forEach { notificationCenter.removeObserver($0) }
     }
 
     private func syncCameraSelection() {
@@ -194,12 +226,12 @@ final class AppState: ObservableObject {
         let storedID = settings.cameraID
 
         if devices.isEmpty {
-            if storedID != nil {
-                settings.cameraID = nil
-            }
             if isMonitoring || isStarting {
                 resumeMonitoringWhenCameraAvailable = true
                 stopMonitoring()
+            }
+            if storedID != nil {
+                settings.cameraID = nil
             }
             return
         }
@@ -235,7 +267,7 @@ final class AppState: ObservableObject {
         guard !isMonitoring, !isStarting else { return }
         cameraStore.refresh()
         let availableDevices = cameraStore.devices
-        if settings.cameraID == nil || availableDevices.contains(where: { $0.uniqueID == settings.cameraID }) == false {
+        if settings.cameraID == nil || availableDevices.contains(where: { $0.id == settings.cameraID }) == false {
             settings.cameraID = cameraStore.preferredDeviceID(storedID: settings.cameraID)
         }
         lastError = nil
@@ -279,6 +311,7 @@ final class AppState: ObservableObject {
         blurOverlay.hide()
         clearSnooze()
         alertManager.shutdownContinuous()
+        isSoundPlaying = false
         stateDefaults.set(false, forKey: Self.resumeMonitoringKey)
         resetTouchState()
         isMonitoring = false
@@ -300,10 +333,10 @@ final class AppState: ObservableObject {
 
     private func startFrameStallMonitor() {
         stopFrameStallMonitor()
-        let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        let timer = timerDriver.makeRepeating(0.5) { [weak self] in
             guard let self else { return }
             guard self.isMonitoring || self.isStarting else { return }
-            let now = CACurrentMediaTime()
+            let now = self.mediaTime()
             if self.lastFrameTime == 0 {
                 self.setAwaitingCamera(true)
                 self.evaluateCameraStall(now: now)
@@ -314,7 +347,7 @@ final class AppState: ObservableObject {
                 self.evaluateCameraStall(now: now)
             }
         }
-        RunLoop.main.add(timer, forMode: .common)
+        timerDriver.schedule(timer)
         frameStallTimer = timer
     }
 
@@ -328,7 +361,7 @@ final class AppState: ObservableObject {
         if awaiting {
             if isAwaitingCamera {
                 if awaitingCameraSince == nil {
-                    awaitingCameraSince = CACurrentMediaTime()
+                    awaitingCameraSince = mediaTime()
                 }
                 return
             }
@@ -336,7 +369,7 @@ final class AppState: ObservableObject {
             previewFaceZone = nil
             previewHit = false
             previewHandPoints = []
-            awaitingCameraSince = CACurrentMediaTime()
+            awaitingCameraSince = mediaTime()
             isAwaitingCamera = true
             return
         }
@@ -364,40 +397,17 @@ final class AppState: ObservableObject {
             self.cameraStore.refresh()
             let devices = self.cameraStore.devices
             let cameraName = self.currentCameraName()
-            let alert = NSAlert()
-            alert.messageText = "Camera isn't responding"
-            alert.informativeText = "Hands Off isn't getting frames from “\(cameraName)”. Select a different camera below, or try again."
-            alert.alertStyle = .warning
-            alert.addButton(withTitle: "Try Again")
-            alert.addButton(withTitle: "Dismiss")
-            let cameraPicker = NSPopUpButton(
-                frame: NSRect(x: 0, y: 0, width: 280, height: 26),
-                pullsDown: false
+            self.cameraStallAlertPresenter(
+                devices,
+                cameraName,
+                self.settings.cameraID,
+                { [weak self] in
+                    self?.restartMonitoring()
+                },
+                { [weak self] selectedID in
+                    self?.settings.cameraID = selectedID
+                }
             )
-            if devices.isEmpty {
-                cameraPicker.addItem(withTitle: "No cameras detected")
-                cameraPicker.isEnabled = false
-            } else {
-                for device in devices {
-                    let item = NSMenuItem(title: device.localizedName, action: nil, keyEquivalent: "")
-                    item.representedObject = device.uniqueID
-                    cameraPicker.menu?.addItem(item)
-                }
-                if let selectedID = self.settings.cameraID,
-                   let index = devices.firstIndex(where: { $0.uniqueID == selectedID }) {
-                    cameraPicker.selectItem(at: index)
-                }
-            }
-            alert.accessoryView = cameraPicker
-            NSApp.activate(ignoringOtherApps: true)
-            let response = alert.runModal()
-            if let selectedID = cameraPicker.selectedItem?.representedObject as? String,
-               selectedID != self.settings.cameraID {
-                self.settings.cameraID = selectedID
-            }
-            if response == .alertFirstButtonReturn {
-                self.restartMonitoring()
-            }
         }
     }
 
@@ -405,8 +415,8 @@ final class AppState: ObservableObject {
         guard let cameraID = settings.cameraID else {
             return "the selected camera"
         }
-        if let match = cameraStore.devices.first(where: { $0.uniqueID == cameraID }) {
-            return match.localizedName
+        if let match = cameraStore.devices.first(where: { $0.id == cameraID }) {
+            return match.name
         }
         return "the selected camera"
     }
@@ -433,7 +443,7 @@ final class AppState: ObservableObject {
             resetTouchState()
             return
         }
-        let now = CACurrentMediaTime()
+        let now = mediaTime()
         updateContinuousSound(isHit: isHit)
 
         if isHit {
@@ -456,13 +466,20 @@ final class AppState: ObservableObject {
 
     private func updateContinuousSound(isHit: Bool) {
         guard settings.alertSoundEnabled, !isSnoozed else {
-            alertManager.stopContinuous()
+            if isSoundPlaying {
+                alertManager.stopContinuous()
+                isSoundPlaying = false
+            }
             return
         }
         if isHit {
-            alertManager.startContinuous()
-        } else {
+            if !isSoundPlaying {
+                alertManager.startContinuous()
+                isSoundPlaying = true
+            }
+        } else if isSoundPlaying {
             alertManager.stopContinuous()
+            isSoundPlaying = false
         }
     }
 
@@ -472,10 +489,11 @@ final class AppState: ObservableObject {
     }
 
     func snooze(for duration: TimeInterval) {
-        let until = Date().addingTimeInterval(duration)
+        let until = now().addingTimeInterval(duration)
         setSnoozed(until: until)
         blurOverlay.hide()
         alertManager.stopContinuous()
+        isSoundPlaying = false
         resetTouchState()
     }
 
@@ -487,8 +505,10 @@ final class AppState: ObservableObject {
         snoozeTimer?.invalidate()
         snoozedUntil = until
 
-        let timer = Timer(fireAt: until, interval: 0, target: self, selector: #selector(endSnoozeTimer), userInfo: nil, repeats: false)
-        RunLoop.main.add(timer, forMode: .common)
+        let timer = timerDriver.makeOneShot(until) { [weak self] in
+            self?.clearSnooze()
+        }
+        timerDriver.schedule(timer)
         snoozeTimer = timer
     }
 
@@ -496,10 +516,6 @@ final class AppState: ObservableObject {
         snoozeTimer?.invalidate()
         snoozeTimer = nil
         snoozedUntil = nil
-    }
-
-    @objc private func endSnoozeTimer() {
-        clearSnooze()
     }
 
     private var shouldResumeMonitoringOnLaunch: Bool {
@@ -518,23 +534,21 @@ final class AppState: ObservableObject {
     private static let legacyResumeMonitoringKey = "settings.resumeMonitoringOnLaunch"
 
     func openCameraSettings() {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") else {
-            return
-        }
-        NSWorkspace.shared.open(url)
+        openCameraSettingsHandler()
+    }
+
+    func terminateApp() {
+        terminateAppHandler()
     }
 
     private func beginMonitoringActivity() {
         guard monitoringActivity == nil else { return }
-        monitoringActivity = ProcessInfo.processInfo.beginActivity(
-            options: [.userInitiated, .idleSystemSleepDisabled],
-            reason: "HandsOff monitoring"
-        )
+        monitoringActivity = activityController.begin("HandsOff monitoring")
     }
 
     private func endMonitoringActivity() {
         guard let monitoringActivity else { return }
-        ProcessInfo.processInfo.endActivity(monitoringActivity)
+        activityController.end(monitoringActivity)
         self.monitoringActivity = nil
     }
 
@@ -544,3 +558,27 @@ final class AppState: ObservableObject {
         alertManager.postBanner()
     }
 }
+
+#if DEBUG
+extension AppState {
+    func _testEvaluateCameraStall(now: CFTimeInterval) {
+        evaluateCameraStall(now: now)
+    }
+
+    func _testSetAwaitingCamera(_ awaiting: Bool) {
+        setAwaitingCamera(awaiting)
+    }
+
+    func _testSyncCameraSelection() {
+        syncCameraSelection()
+    }
+
+    func _testHandleTrigger() {
+        handleTrigger()
+    }
+
+    var _testIsTouching: Bool {
+        isTouching
+    }
+}
+#endif

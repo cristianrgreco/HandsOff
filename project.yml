@@ -18,7 +18,45 @@ targets:
       path: HandsOff/Supporting/HandsOff.entitlements
     settings:
       base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         PRODUCT_BUNDLE_IDENTIFIER: com.example.HandsOff
         INFOPLIST_FILE: HandsOff/Supporting/Info.plist
         CODE_SIGN_ENTITLEMENTS: HandsOff/Supporting/HandsOff.entitlements
         GENERATE_INFOPLIST_FILE: NO
+  HandsOffTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: HandsOffTests
+    dependencies:
+      - target: HandsOff
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.HandsOffTests
+        GENERATE_INFOPLIST_FILE: YES
+  HandsOffUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: HandsOffUITests
+    dependencies:
+      - target: HandsOff
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.HandsOffUITests
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  HandsOff:
+    build:
+      targets:
+        HandsOff: all
+  HandsOffTests:
+    build:
+      targets:
+        HandsOff: all
+    test:
+      targets:
+        - name: HandsOffTests
+        - name: HandsOffUITests

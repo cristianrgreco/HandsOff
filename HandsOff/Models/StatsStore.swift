@@ -229,3 +229,15 @@ final class StatsStore: ObservableObject {
         static let alertHistory = "stats.alertHistory"
     }
 }
+
+#if DEBUG
+extension StatsStore {
+    var _testMonitoringStart: Date? {
+        monitoringStart
+    }
+
+    var _testAlertHistory: [TimeInterval] {
+        alertHistory
+    }
+}
+#endif

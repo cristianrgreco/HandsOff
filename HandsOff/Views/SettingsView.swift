@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings: SettingsStore
-    @ObservedObject var cameraStore: CameraStore
+    @ObservedObject var cameraStore: AnyCameraStore
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -43,17 +43,19 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var cameraPicker: some View {
-        if cameraStore.devices.isEmpty {
-            Text("Camera: none detected")
+        if let placeholder = SettingsPresentation.cameraPlaceholderText(devices: cameraStore.devices) {
+            Text(placeholder)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .accessibilityIdentifier("camera-placeholder")
         } else {
             Picker("Camera", selection: $settings.cameraID) {
-                ForEach(cameraStore.devices, id: \.uniqueID) { device in
-                    Text(device.localizedName).tag(Optional(device.uniqueID))
+                ForEach(cameraStore.devices, id: \.id) { device in
+                    Text(device.name).tag(Optional(device.id))
                 }
             }
             .pickerStyle(.menu)
+            .accessibilityIdentifier("camera-picker")
         }
     }
 

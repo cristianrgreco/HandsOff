@@ -14,6 +14,8 @@ struct DetectionOverlayView: View {
                         .background(Color.clear)
                         .frame(width: faceRect.width, height: faceRect.height)
                         .position(x: faceRect.midX, y: faceRect.midY)
+                        .accessibilityElement()
+                        .accessibilityIdentifier("face-box")
                 }
 
                 ForEach(handPoints.indices, id: \.self) { index in
@@ -26,9 +28,11 @@ struct DetectionOverlayView: View {
                                 .stroke(.white.opacity(0.7), lineWidth: 1)
                         )
                         .position(x: point.x, y: point.y)
+                        .accessibilityElement()
+                        .accessibilityIdentifier("hand-point")
                 }
 
-                if isHit {
+                if DetectionOverlayPresentation.showsAlert(isHit: isHit) {
                     Text("ALERT")
                         .font(.caption2)
                         .foregroundStyle(.white)
@@ -37,6 +41,7 @@ struct DetectionOverlayView: View {
                         .background(Color.red.opacity(0.85))
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                         .padding(6)
+                        .accessibilityIdentifier("alert-label")
                 }
             }
         }
@@ -56,9 +61,11 @@ struct DetectionOverlayView: View {
     }
 
     private func color(for point: CGPoint) -> Color {
-        if let faceRect, faceRect.contains(point) {
+        switch DetectionOverlayPresentation.pointTone(faceRect: faceRect, point: point) {
+        case .alert:
             return .red
+        case .accent:
+            return accentColor
         }
-        return accentColor
     }
 }

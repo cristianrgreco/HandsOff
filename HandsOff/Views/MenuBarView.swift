@@ -13,11 +13,13 @@ struct MenuBarView: View {
                     .font(.caption)
                     .foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("error-text")
 
-                if error == .permissionDenied {
+                if MenuBarStatus.shouldShowOpenCameraSettings(error: error) {
                     Button("Open Camera Settings") {
                         appState.openCameraSettings()
                     }
+                    .accessibilityIdentifier("open-camera-settings")
                 }
             }
 
@@ -42,6 +44,8 @@ struct MenuBarView: View {
                     .foregroundStyle(statusColor)
                     .lineLimit(1)
                     .layoutPriority(1)
+                    .accessibilityLabel(statusText)
+                    .accessibilityIdentifier("status-text")
             }
             Spacer()
             if appState.isMonitoring {
@@ -75,8 +79,12 @@ struct MenuBarView: View {
                 Button {
                     appState.toggleMonitoring()
                 } label: {
-                    Text(appState.isMonitoring ? "Stop" : "Cancel")
+                    Text(MenuBarStatus.primaryActionTitle(
+                        isMonitoring: appState.isMonitoring,
+                        isStarting: appState.isStarting
+                    ))
                 }
+                .accessibilityIdentifier("primary-action")
                 .buttonStyle(.bordered)
                 .tint(.red)
                 .controlSize(.small)
@@ -85,8 +93,12 @@ struct MenuBarView: View {
                 Button {
                     appState.toggleMonitoring()
                 } label: {
-                    Text("Start")
+                    Text(MenuBarStatus.primaryActionTitle(
+                        isMonitoring: appState.isMonitoring,
+                        isStarting: appState.isStarting
+                    ))
                 }
+                .accessibilityIdentifier("primary-action")
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
                 .controlSize(.small)
@@ -97,39 +109,40 @@ struct MenuBarView: View {
     }
 
     private var statusText: String {
-        if appState.isCameraStalled {
-            return "Camera not responding"
-        }
-        if appState.isStarting || appState.isAwaitingCamera {
-            return "Starting..."
-        }
-        if appState.isMonitoring {
-            return appState.isSnoozed ? "Monitoring snoozed" : "Monitoring on"
-        }
-        return "Monitoring off"
+        MenuBarStatus.statusText(
+            isMonitoring: appState.isMonitoring,
+            isStarting: appState.isStarting,
+            isAwaitingCamera: appState.isAwaitingCamera,
+            isSnoozed: appState.isSnoozed,
+            isCameraStalled: appState.isCameraStalled
+        )
     }
 
     private var statusColor: Color {
-        if appState.isCameraStalled {
+        switch MenuBarStatus.statusTone(
+            isMonitoring: appState.isMonitoring,
+            isStarting: appState.isStarting,
+            isAwaitingCamera: appState.isAwaitingCamera,
+            isSnoozed: appState.isSnoozed,
+            isCameraStalled: appState.isCameraStalled
+        ) {
+        case .red:
             return .red
-        }
-        if appState.isStarting || appState.isAwaitingCamera {
+        case .orange:
             return .orange
+        case .green:
+            return .green
+        case .secondary:
+            return .secondary
         }
-        if appState.isMonitoring {
-            return appState.isSnoozed ? .orange : .green
-        }
-        return .secondary
     }
 
     private var headerSymbolName: String {
-        if appState.isStarting || appState.isAwaitingCamera {
-            return "hand.raised"
-        }
-        if appState.isMonitoring {
-            return "hand.raised.fill"
-        }
-        return "hand.raised.slash"
+        MenuBarStatus.headerSymbolName(
+            isMonitoring: appState.isMonitoring,
+            isStarting: appState.isStarting,
+            isAwaitingCamera: appState.isAwaitingCamera
+        )
     }
 
     private var previewSection: some View {
@@ -139,38 +152,46 @@ struct MenuBarView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
 
-            if appState.isMonitoring {
-                if let previewImage = appState.previewImage {
-                    PreviewFrameView(
-                        image: previewImage,
-                        faceZone: appState.previewFaceZone,
-                        isHit: appState.previewHit,
-                        handPoints: appState.previewHandPoints
+            if appState.isMonitoring, let previewImage = appState.previewImage {
+                PreviewFrameView(
+                    image: previewImage,
+                    faceZone: appState.previewFaceZone,
+                    isHit: appState.previewHit,
+                    handPoints: appState.previewHandPoints
+                )
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 160)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(appState.previewHit ? .red : .secondary, lineWidth: 2)
                     )
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 160)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(appState.previewHit ? .red : .secondary, lineWidth: 2)
-                        )
-                } else {
-                    previewPlaceholder(text: appState.isAwaitingCamera ? "Starting camera..." : "Waiting for camera...")
-                }
-            } else if appState.isStarting {
-                previewPlaceholder(text: "Starting camera...")
-            } else {
-                previewPlaceholder(text: "Start monitoring to show the camera feed.")
+            } else if let placeholder = MenuBarStatus.previewPlaceholderText(
+                isMonitoring: appState.isMonitoring,
+                isStarting: appState.isStarting,
+                isAwaitingCamera: appState.isAwaitingCamera,
+                hasPreviewImage: appState.previewImage != nil
+            ) {
+                previewPlaceholder(text: placeholder)
             }
         }
         .onAppear {
-            appState.setPreviewEnabled(appState.isMonitoring && !appState.isAwaitingCamera)
+            appState.setPreviewEnabled(MenuBarStatus.shouldEnablePreview(
+                isMonitoring: appState.isMonitoring,
+                isAwaitingCamera: appState.isAwaitingCamera
+            ))
         }
         .onChange(of: appState.isMonitoring) { isMonitoring in
-            appState.setPreviewEnabled(isMonitoring && !appState.isAwaitingCamera)
+            appState.setPreviewEnabled(MenuBarStatus.shouldEnablePreview(
+                isMonitoring: isMonitoring,
+                isAwaitingCamera: appState.isAwaitingCamera
+            ))
         }
         .onChange(of: appState.isAwaitingCamera) { isAwaiting in
-            appState.setPreviewEnabled(appState.isMonitoring && !isAwaiting)
+            appState.setPreviewEnabled(MenuBarStatus.shouldEnablePreview(
+                isMonitoring: appState.isMonitoring,
+                isAwaitingCamera: isAwaiting
+            ))
         }
         .onDisappear {
             appState.setPreviewEnabled(false)
@@ -189,6 +210,8 @@ struct MenuBarView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .accessibilityLabel(text)
+                .accessibilityIdentifier("preview-placeholder")
                 .padding(.horizontal, 10)
         }
         .frame(maxWidth: .infinity)
@@ -212,7 +235,7 @@ struct MenuBarView: View {
         HStack {
             Spacer()
             Button("Quit") {
-                NSApplication.shared.terminate(nil)
+                appState.terminateApp()
             }
             .buttonStyle(.bordered)
             .controlSize(.small)

@@ -7,48 +7,132 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		055171B40ED6E206182909FB /* DetectionOverlayPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCA5557DF50B82E05ECACB89 /* DetectionOverlayPresentationTests.swift */; };
+		13D661401A9AF8026514C64F /* MenuBarStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F37FE51CDDB0BCE4D9A250D0 /* MenuBarStatusTests.swift */; };
+		15E8CA6B8D19E9E533FC8FC4 /* CameraStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 336E7E898C504FB28382AC07 /* CameraStoreTests.swift */; };
+		19117455DDA9A12D56B18286 /* SettingsStoreEnumTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3EAD2AEC8E0CB290FB08C77 /* SettingsStoreEnumTests.swift */; };
 		20F84713F8195386F8D04B3F /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B38DA9A0037B00BC83106CB1 /* LoginItemManager.swift */; };
+		2F4001A7F727B74A27F82488 /* DetectionGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEC9D511C9D1E2E5B7FD0059 /* DetectionGeometryTests.swift */; };
+		32270B2717E88FA9BA4DF58B /* DetectionOverlayPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 937348A9BA45D2BEDAC8E2D7 /* DetectionOverlayPresentation.swift */; };
+		33C7C08ED0D00E9CA7CFD63E /* AppStateDependenciesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3FA45B621ACF95D18F0C578 /* AppStateDependenciesTests.swift */; };
+		4771D1C9EA28D32F528E22D0 /* DetectionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5CC8B276D24E4EC3284AF24 /* DetectionEngineTests.swift */; };
+		4870789921E39FF16499BBF6 /* UITestWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26F07C7EF669FD2E9FE00F84 /* UITestWindowController.swift */; };
 		4C5B7AA082370D55E83E0E02 /* PreviewFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7790AC94586ED71E596273A /* PreviewFrameView.swift */; };
 		4DBD2BC691C610F0FC78D1FB /* DetectionOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */; };
+		5114431CF6E03B1FFE108021 /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DD63BD4D16F9473920295B /* SettingsStoreTests.swift */; };
+		5276E9C5C4D6258655DEEB6D /* MenuBarStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99DEDDFDEBEADE16CE05C3E /* MenuBarStatus.swift */; };
+		6006AFBB4FDB988979B96821 /* SettingsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 709A2C3FC432E8875BE08830 /* SettingsPresentation.swift */; };
+		7CDD81EC433D8A9F74370425 /* AppStateDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD6498C72241A824CCF2674 /* AppStateDependencies.swift */; };
+		80C04570E5831B3579F4B5FC /* TestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F1A17121290218D635E0338 /* TestDoubles.swift */; };
 		84BE402E1FD3ED11F4CFF467 /* BlurOverlayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0C81AB35F8A83D3D8415174 /* BlurOverlayController.swift */; };
+		865D2E9651D92DE9A3536DED /* SettingsPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBC6B7E4A6884D6B157671B1 /* SettingsPresentationTests.swift */; };
 		8991EE10DBCD567C0ECCC44B /* HandsOffApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71B0C7C4C1661C99BD92C9D6 /* HandsOffApp.swift */; };
+		89D40641403E9A0C45253875 /* HandsOffUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74AFEB7C8E8E2DBC46187DD4 /* HandsOffUITests.swift */; };
+		914F276733EF40679F09F0CC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A5DF3A26046029C914B753E6 /* Assets.xcassets */; };
 		9584D5AC687AAB482A84F3FA /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AEF5F19F145D8EE7E7986A4 /* AppState.swift */; };
 		993F2E28C3456175DCD5081F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3EA664A2C98A450CF8C99A5 /* SettingsView.swift */; };
+		9EE2AFEEF0C43EBD23EAAF3B /* LoginItemManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072D5B9C4D27C026605B8FE0 /* LoginItemManagerTests.swift */; };
 		A00D4B1F6544897E3696827D /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6978445094BFE8143DC7AC32 /* SettingsStore.swift */; };
+		B087C2E615F62BDA6C23D2B4 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D4D7903CD0274342B20909 /* AppStateTests.swift */; };
 		B90522E3E111A33FB9BA0EAF /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 628947D253CBBB064E7AFFF4 /* StatsView.swift */; };
+		B95F4F6CE96A321EA9AF7EC0 /* StatsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82AB6AB453450DCD5910D69F /* StatsPresentation.swift */; };
 		BAB75445F8FAEA653D5139A2 /* AlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 340EA053A14912C60246F6E4 /* AlertManager.swift */; };
+		C14E153953B07A7188672338 /* StatsPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C317E7F7E37C6B7B4735D75B /* StatsPresentationTests.swift */; };
+		C82F400883BB1392D32B41AF /* DetectionEngineRestartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7A3359AAD98DFE714C1B08 /* DetectionEngineRestartTests.swift */; };
 		CF0FD4F99DAB2C1D7320974B /* CameraStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E88109BC34A9A193DF2415 /* CameraStore.swift */; };
+		CF5A85D8F68F604A4BA99EE1 /* AlertManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172F7F44656655A844394E14 /* AlertManagerTests.swift */; };
+		CFC995022749938DF97032D9 /* DetectionFrameThrottleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07B40F2042CD72C4456121BE /* DetectionFrameThrottleTests.swift */; };
+		D163042B46B5AC7D4C546D94 /* UITestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34DA461B8B59AA13DFC8E10 /* UITestSupport.swift */; };
+		D5D25F39B42F3F8BF69E96F1 /* AlertRangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A04AAAB94FF79F7FDCF84B /* AlertRangeTests.swift */; };
+		DBA83444143498BB0A5BB852 /* BlurOverlayControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4952E295D3C14E262340C691 /* BlurOverlayControllerTests.swift */; };
+		EA0B297594E4173C96B8DB19 /* DetectionTriggerStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC8EC6650341DAE7F2BE16 /* DetectionTriggerStateTests.swift */; };
+		EE58E5294EDB937E28858D3C /* DetectionFaceCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044092BE06B5905AD223334F /* DetectionFaceCacheTests.swift */; };
 		EF19F739A67B5852CADF233C /* DetectionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73EAB9E017211931C90FF20B /* DetectionEngine.swift */; };
 		F3AD2E2A47E7E2E4ABACDF3A /* StatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0DF28F9809C1ABF7DD587DF /* StatsStore.swift */; };
 		FB7B056F4AC1FA7A229111D4 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB87CFAFE32C538E0CACAE7 /* MenuBarView.swift */; };
+		FBF8715EB070B09C0174F234 /* DetectionSessionHealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5074698265D8A2868758492C /* DetectionSessionHealthTests.swift */; };
+		FF4B19F011819EA74EA4688C /* StatsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D3D59852A963945D9B65E7 /* StatsStoreTests.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		29C17EC46A95D045313C3933 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B9A74935C50F6133B6CC901D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6C688B14EDDA8EE576CE6886;
+			remoteInfo = HandsOff;
+		};
+		54B0E4AA063388F244E979A3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B9A74935C50F6133B6CC901D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6C688B14EDDA8EE576CE6886;
+			remoteInfo = HandsOff;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		044092BE06B5905AD223334F /* DetectionFaceCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionFaceCacheTests.swift; sourceTree = "<group>"; };
+		072D5B9C4D27C026605B8FE0 /* LoginItemManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManagerTests.swift; sourceTree = "<group>"; };
+		07B40F2042CD72C4456121BE /* DetectionFrameThrottleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionFrameThrottleTests.swift; sourceTree = "<group>"; };
+		172F7F44656655A844394E14 /* AlertManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertManagerTests.swift; sourceTree = "<group>"; };
 		221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionOverlayView.swift; sourceTree = "<group>"; };
 		2223377E43D5C63818771A08 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		26F07C7EF669FD2E9FE00F84 /* UITestWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestWindowController.swift; sourceTree = "<group>"; };
 		31E88109BC34A9A193DF2415 /* CameraStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStore.swift; sourceTree = "<group>"; };
+		336E7E898C504FB28382AC07 /* CameraStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraStoreTests.swift; sourceTree = "<group>"; };
 		340EA053A14912C60246F6E4 /* AlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertManager.swift; sourceTree = "<group>"; };
 		3876A8AC59CAD7FB59554F40 /* HandsOff.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HandsOff.entitlements; sourceTree = "<group>"; };
+		42D3D59852A963945D9B65E7 /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
+		4952E295D3C14E262340C691 /* BlurOverlayControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurOverlayControllerTests.swift; sourceTree = "<group>"; };
 		4AEF5F19F145D8EE7E7986A4 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		5074698265D8A2868758492C /* DetectionSessionHealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionSessionHealthTests.swift; sourceTree = "<group>"; };
+		50E32B3317C642F7C56151AC /* HandsOffUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HandsOffUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		51D4D7903CD0274342B20909 /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
+		5A4CDABF472E1E55086E889C /* HandsOffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HandsOffTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5CD6498C72241A824CCF2674 /* AppStateDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateDependencies.swift; sourceTree = "<group>"; };
+		5F1A17121290218D635E0338 /* TestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDoubles.swift; sourceTree = "<group>"; };
 		628947D253CBBB064E7AFFF4 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		6978445094BFE8143DC7AC32 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		709A2C3FC432E8875BE08830 /* SettingsPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPresentation.swift; sourceTree = "<group>"; };
 		71B0C7C4C1661C99BD92C9D6 /* HandsOffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsOffApp.swift; sourceTree = "<group>"; };
 		73EAB9E017211931C90FF20B /* DetectionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngine.swift; sourceTree = "<group>"; };
+		74AFEB7C8E8E2DBC46187DD4 /* HandsOffUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandsOffUITests.swift; sourceTree = "<group>"; };
+		79A04AAAB94FF79F7FDCF84B /* AlertRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertRangeTests.swift; sourceTree = "<group>"; };
+		7CDC8EC6650341DAE7F2BE16 /* DetectionTriggerStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionTriggerStateTests.swift; sourceTree = "<group>"; };
+		82AB6AB453450DCD5910D69F /* StatsPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsPresentation.swift; sourceTree = "<group>"; };
+		937348A9BA45D2BEDAC8E2D7 /* DetectionOverlayPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionOverlayPresentation.swift; sourceTree = "<group>"; };
 		9676E8E71BFD04E8A3B6FEF7 /* HandsOff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HandsOff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A0DF28F9809C1ABF7DD587DF /* StatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStore.swift; sourceTree = "<group>"; };
+		A5DF3A26046029C914B753E6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A9DD63BD4D16F9473920295B /* SettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStoreTests.swift; sourceTree = "<group>"; };
+		AC7A3359AAD98DFE714C1B08 /* DetectionEngineRestartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngineRestartTests.swift; sourceTree = "<group>"; };
+		AEC9D511C9D1E2E5B7FD0059 /* DetectionGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionGeometryTests.swift; sourceTree = "<group>"; };
 		B38DA9A0037B00BC83106CB1 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
 		BBB87CFAFE32C538E0CACAE7 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		C317E7F7E37C6B7B4735D75B /* StatsPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsPresentationTests.swift; sourceTree = "<group>"; };
 		C3EA664A2C98A450CF8C99A5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C3FA45B621ACF95D18F0C578 /* AppStateDependenciesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateDependenciesTests.swift; sourceTree = "<group>"; };
+		D34DA461B8B59AA13DFC8E10 /* UITestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
+		DCA5557DF50B82E05ECACB89 /* DetectionOverlayPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionOverlayPresentationTests.swift; sourceTree = "<group>"; };
 		E0C81AB35F8A83D3D8415174 /* BlurOverlayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurOverlayController.swift; sourceTree = "<group>"; };
+		E3EAD2AEC8E0CB290FB08C77 /* SettingsStoreEnumTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStoreEnumTests.swift; sourceTree = "<group>"; };
 		E7790AC94586ED71E596273A /* PreviewFrameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFrameView.swift; sourceTree = "<group>"; };
+		F37FE51CDDB0BCE4D9A250D0 /* MenuBarStatusTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarStatusTests.swift; sourceTree = "<group>"; };
+		F5CC8B276D24E4EC3284AF24 /* DetectionEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngineTests.swift; sourceTree = "<group>"; };
+		F99DEDDFDEBEADE16CE05C3E /* MenuBarStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarStatus.swift; sourceTree = "<group>"; };
+		FBC6B7E4A6884D6B157671B1 /* SettingsPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPresentationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		00D03C00B36A3C8C6DBC1900 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
+				5CD6498C72241A824CCF2674 /* AppStateDependencies.swift */,
 				3876A8AC59CAD7FB59554F40 /* HandsOff.entitlements */,
 				2223377E43D5C63818771A08 /* Info.plist */,
+				D34DA461B8B59AA13DFC8E10 /* UITestSupport.swift */,
+				26F07C7EF669FD2E9FE00F84 /* UITestWindowController.swift */,
 			);
 			path = Supporting;
 			sourceTree = "<group>";
@@ -57,16 +141,51 @@
 			isa = PBXGroup;
 			children = (
 				31E88109BC34A9A193DF2415 /* CameraStore.swift */,
+				937348A9BA45D2BEDAC8E2D7 /* DetectionOverlayPresentation.swift */,
+				F99DEDDFDEBEADE16CE05C3E /* MenuBarStatus.swift */,
+				709A2C3FC432E8875BE08830 /* SettingsPresentation.swift */,
 				6978445094BFE8143DC7AC32 /* SettingsStore.swift */,
+				82AB6AB453450DCD5910D69F /* StatsPresentation.swift */,
 				A0DF28F9809C1ABF7DD587DF /* StatsStore.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		31011F7A5B0AAEF28B631DED /* HandsOffTests */ = {
+			isa = PBXGroup;
+			children = (
+				172F7F44656655A844394E14 /* AlertManagerTests.swift */,
+				79A04AAAB94FF79F7FDCF84B /* AlertRangeTests.swift */,
+				C3FA45B621ACF95D18F0C578 /* AppStateDependenciesTests.swift */,
+				51D4D7903CD0274342B20909 /* AppStateTests.swift */,
+				4952E295D3C14E262340C691 /* BlurOverlayControllerTests.swift */,
+				336E7E898C504FB28382AC07 /* CameraStoreTests.swift */,
+				AC7A3359AAD98DFE714C1B08 /* DetectionEngineRestartTests.swift */,
+				F5CC8B276D24E4EC3284AF24 /* DetectionEngineTests.swift */,
+				044092BE06B5905AD223334F /* DetectionFaceCacheTests.swift */,
+				07B40F2042CD72C4456121BE /* DetectionFrameThrottleTests.swift */,
+				AEC9D511C9D1E2E5B7FD0059 /* DetectionGeometryTests.swift */,
+				DCA5557DF50B82E05ECACB89 /* DetectionOverlayPresentationTests.swift */,
+				5074698265D8A2868758492C /* DetectionSessionHealthTests.swift */,
+				7CDC8EC6650341DAE7F2BE16 /* DetectionTriggerStateTests.swift */,
+				072D5B9C4D27C026605B8FE0 /* LoginItemManagerTests.swift */,
+				F37FE51CDDB0BCE4D9A250D0 /* MenuBarStatusTests.swift */,
+				FBC6B7E4A6884D6B157671B1 /* SettingsPresentationTests.swift */,
+				E3EAD2AEC8E0CB290FB08C77 /* SettingsStoreEnumTests.swift */,
+				A9DD63BD4D16F9473920295B /* SettingsStoreTests.swift */,
+				C317E7F7E37C6B7B4735D75B /* StatsPresentationTests.swift */,
+				42D3D59852A963945D9B65E7 /* StatsStoreTests.swift */,
+				5F1A17121290218D635E0338 /* TestDoubles.swift */,
+			);
+			path = HandsOffTests;
 			sourceTree = "<group>";
 		};
 		324481A128A281E819333C69 = {
 			isa = PBXGroup;
 			children = (
 				CDBA23F64D77CEBEC3E1B093 /* HandsOff */,
+				31011F7A5B0AAEF28B631DED /* HandsOffTests */,
+				600BE3AFA1D33D5AB71B4C57 /* HandsOffUITests */,
 				6A7A91CC6700D821274DFB89 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -84,10 +203,20 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		600BE3AFA1D33D5AB71B4C57 /* HandsOffUITests */ = {
+			isa = PBXGroup;
+			children = (
+				74AFEB7C8E8E2DBC46187DD4 /* HandsOffUITests.swift */,
+			);
+			path = HandsOffUITests;
+			sourceTree = "<group>";
+		};
 		6A7A91CC6700D821274DFB89 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				9676E8E71BFD04E8A3B6FEF7 /* HandsOff.app */,
+				5A4CDABF472E1E55086E889C /* HandsOffTests.xctest */,
+				50E32B3317C642F7C56151AC /* HandsOffUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -106,6 +235,7 @@
 			isa = PBXGroup;
 			children = (
 				4AEF5F19F145D8EE7E7986A4 /* AppState.swift */,
+				A5DF3A26046029C914B753E6 /* Assets.xcassets */,
 				71B0C7C4C1661C99BD92C9D6 /* HandsOffApp.swift */,
 				28F74281E23D490BB73FB89B /* Models */,
 				CC53F842A366A0CE0423035D /* Services */,
@@ -123,6 +253,7 @@
 			buildConfigurationList = 616184A1DF1EB49DEA84F6D2 /* Build configuration list for PBXNativeTarget "HandsOff" */;
 			buildPhases = (
 				142A22804AE8799C651BE958 /* Sources */,
+				6FB9A423A38CB2B249C41CE5 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -135,6 +266,42 @@
 			productReference = 9676E8E71BFD04E8A3B6FEF7 /* HandsOff.app */;
 			productType = "com.apple.product-type.application";
 		};
+		7FC8611EFFB66AC787551314 /* HandsOffUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E0080C7FB297A441114FF7AA /* Build configuration list for PBXNativeTarget "HandsOffUITests" */;
+			buildPhases = (
+				5E14ABAAAB384ED207D7EE44 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				410AF7381708BE551A320563 /* PBXTargetDependency */,
+			);
+			name = HandsOffUITests;
+			packageProductDependencies = (
+			);
+			productName = HandsOffUITests;
+			productReference = 50E32B3317C642F7C56151AC /* HandsOffUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		871EFB4090D609388A0CD99F /* HandsOffTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 78B6B39C5D0F0DFEDE6D7855 /* Build configuration list for PBXNativeTarget "HandsOffTests" */;
+			buildPhases = (
+				0C4BEDF0C4AFAECF2724323F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D3A43283514DF29D50E726A7 /* PBXTargetDependency */,
+			);
+			name = HandsOffTests;
+			packageProductDependencies = (
+			);
+			productName = HandsOffTests;
+			productReference = 5A4CDABF472E1E55086E889C /* HandsOffTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -143,6 +310,11 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					7FC8611EFFB66AC787551314 = {
+						TestTargetID = 6C688B14EDDA8EE576CE6886;
+					};
+				};
 			};
 			buildConfigurationList = A5D790DACDF4C7CDDA3A2FEC /* Build configuration list for PBXProject "HandsOff" */;
 			compatibilityVersion = "Xcode 14.0";
@@ -159,35 +331,141 @@
 			projectRoot = "";
 			targets = (
 				6C688B14EDDA8EE576CE6886 /* HandsOff */,
+				871EFB4090D609388A0CD99F /* HandsOffTests */,
+				7FC8611EFFB66AC787551314 /* HandsOffUITests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		6FB9A423A38CB2B249C41CE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				914F276733EF40679F09F0CC /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		0C4BEDF0C4AFAECF2724323F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF5A85D8F68F604A4BA99EE1 /* AlertManagerTests.swift in Sources */,
+				D5D25F39B42F3F8BF69E96F1 /* AlertRangeTests.swift in Sources */,
+				33C7C08ED0D00E9CA7CFD63E /* AppStateDependenciesTests.swift in Sources */,
+				B087C2E615F62BDA6C23D2B4 /* AppStateTests.swift in Sources */,
+				DBA83444143498BB0A5BB852 /* BlurOverlayControllerTests.swift in Sources */,
+				15E8CA6B8D19E9E533FC8FC4 /* CameraStoreTests.swift in Sources */,
+				C82F400883BB1392D32B41AF /* DetectionEngineRestartTests.swift in Sources */,
+				4771D1C9EA28D32F528E22D0 /* DetectionEngineTests.swift in Sources */,
+				EE58E5294EDB937E28858D3C /* DetectionFaceCacheTests.swift in Sources */,
+				CFC995022749938DF97032D9 /* DetectionFrameThrottleTests.swift in Sources */,
+				2F4001A7F727B74A27F82488 /* DetectionGeometryTests.swift in Sources */,
+				055171B40ED6E206182909FB /* DetectionOverlayPresentationTests.swift in Sources */,
+				FBF8715EB070B09C0174F234 /* DetectionSessionHealthTests.swift in Sources */,
+				EA0B297594E4173C96B8DB19 /* DetectionTriggerStateTests.swift in Sources */,
+				9EE2AFEEF0C43EBD23EAAF3B /* LoginItemManagerTests.swift in Sources */,
+				13D661401A9AF8026514C64F /* MenuBarStatusTests.swift in Sources */,
+				865D2E9651D92DE9A3536DED /* SettingsPresentationTests.swift in Sources */,
+				19117455DDA9A12D56B18286 /* SettingsStoreEnumTests.swift in Sources */,
+				5114431CF6E03B1FFE108021 /* SettingsStoreTests.swift in Sources */,
+				C14E153953B07A7188672338 /* StatsPresentationTests.swift in Sources */,
+				FF4B19F011819EA74EA4688C /* StatsStoreTests.swift in Sources */,
+				80C04570E5831B3579F4B5FC /* TestDoubles.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		142A22804AE8799C651BE958 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				BAB75445F8FAEA653D5139A2 /* AlertManager.swift in Sources */,
 				9584D5AC687AAB482A84F3FA /* AppState.swift in Sources */,
+				7CDD81EC433D8A9F74370425 /* AppStateDependencies.swift in Sources */,
 				84BE402E1FD3ED11F4CFF467 /* BlurOverlayController.swift in Sources */,
 				CF0FD4F99DAB2C1D7320974B /* CameraStore.swift in Sources */,
 				EF19F739A67B5852CADF233C /* DetectionEngine.swift in Sources */,
+				32270B2717E88FA9BA4DF58B /* DetectionOverlayPresentation.swift in Sources */,
 				4DBD2BC691C610F0FC78D1FB /* DetectionOverlayView.swift in Sources */,
 				8991EE10DBCD567C0ECCC44B /* HandsOffApp.swift in Sources */,
 				20F84713F8195386F8D04B3F /* LoginItemManager.swift in Sources */,
+				5276E9C5C4D6258655DEEB6D /* MenuBarStatus.swift in Sources */,
 				FB7B056F4AC1FA7A229111D4 /* MenuBarView.swift in Sources */,
 				4C5B7AA082370D55E83E0E02 /* PreviewFrameView.swift in Sources */,
+				6006AFBB4FDB988979B96821 /* SettingsPresentation.swift in Sources */,
 				A00D4B1F6544897E3696827D /* SettingsStore.swift in Sources */,
 				993F2E28C3456175DCD5081F /* SettingsView.swift in Sources */,
+				B95F4F6CE96A321EA9AF7EC0 /* StatsPresentation.swift in Sources */,
 				F3AD2E2A47E7E2E4ABACDF3A /* StatsStore.swift in Sources */,
 				B90522E3E111A33FB9BA0EAF /* StatsView.swift in Sources */,
+				D163042B46B5AC7D4C546D94 /* UITestSupport.swift in Sources */,
+				4870789921E39FF16499BBF6 /* UITestWindowController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5E14ABAAAB384ED207D7EE44 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				89D40641403E9A0C45253875 /* HandsOffUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		410AF7381708BE551A320563 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6C688B14EDDA8EE576CE6886 /* HandsOff */;
+			targetProxy = 54B0E4AA063388F244E979A3 /* PBXContainerItemProxy */;
+		};
+		D3A43283514DF29D50E726A7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6C688B14EDDA8EE576CE6886 /* HandsOff */;
+			targetProxy = 29C17EC46A95D045313C3933 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0ED20DB659CC8123F847841B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.HandsOffUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = HandsOff;
+			};
+			name = Debug;
+		};
+		1D989DE01DA9BE4AFE53668E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.HandsOffTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HandsOff.app/Contents/MacOS/HandsOff";
+			};
+			name = Release;
+		};
 		28506E133220C48B6951A855 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -240,6 +518,42 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		6DBD9FE87E65D1CE5E00FE0A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.HandsOffTests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HandsOff.app/Contents/MacOS/HandsOff";
+			};
+			name = Debug;
+		};
+		71CCDCCF08045EF26B5A51D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.HandsOffUITests;
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = HandsOff;
 			};
 			name = Release;
 		};
@@ -353,11 +667,29 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		78B6B39C5D0F0DFEDE6D7855 /* Build configuration list for PBXNativeTarget "HandsOffTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6DBD9FE87E65D1CE5E00FE0A /* Debug */,
+				1D989DE01DA9BE4AFE53668E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		A5D790DACDF4C7CDDA3A2FEC /* Build configuration list for PBXProject "HandsOff" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				74056E12FF25BE827F29C365 /* Debug */,
 				28506E133220C48B6951A855 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E0080C7FB297A441114FF7AA /* Build configuration list for PBXNativeTarget "HandsOffUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0ED20DB659CC8123F847841B /* Debug */,
+				71CCDCCF08045EF26B5A51D6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

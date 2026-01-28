@@ -102,3 +102,31 @@ final class BlurOverlayController {
         windows.forEach { $0.alphaValue = alpha }
     }
 }
+
+#if DEBUG
+extension BlurOverlayController {
+    var _testWindowCount: Int {
+        windows.count
+    }
+
+    var _testWindowAlphas: [CGFloat] {
+        windows.map(\.alphaValue)
+    }
+
+    var _testIsVisible: Bool {
+        isVisible
+    }
+
+    var _testIsFlashOn: Bool {
+        isFlashOn
+    }
+
+    var _testFlashAlpha: CGFloat {
+        flashAlpha
+    }
+
+    func _testRebuildWindows() {
+        rebuildWindows()
+    }
+}
+#endif

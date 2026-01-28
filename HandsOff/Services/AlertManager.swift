@@ -2,9 +2,62 @@ import AVFoundation
 import Foundation
 import UserNotifications
 
+protocol NotificationSettingsType {
+    var authorizationStatus: UNAuthorizationStatus { get }
+}
+
+protocol NotificationCenterType {
+    func getNotificationSettings(completion: @escaping (NotificationSettingsType) -> Void)
+    func requestAuthorization(options: UNAuthorizationOptions, completion: @escaping (Bool, Error?) -> Void)
+    func add(_ request: UNNotificationRequest, withCompletionHandler completion: ((Error?) -> Void)?)
+}
+
+struct NotificationSettingsAdapter: NotificationSettingsType {
+    let settings: UNNotificationSettings
+
+    var authorizationStatus: UNAuthorizationStatus { settings.authorizationStatus }
+}
+
+final class UserNotificationCenterAdapter: NotificationCenterType {
+    private let center: UNUserNotificationCenter
+
+    init(center: UNUserNotificationCenter = .current()) {
+        self.center = center
+    }
+
+    func getNotificationSettings(completion: @escaping (NotificationSettingsType) -> Void) {
+        center.getNotificationSettings { settings in
+            completion(NotificationSettingsAdapter(settings: settings))
+        }
+    }
+
+    func requestAuthorization(options: UNAuthorizationOptions, completion: @escaping (Bool, Error?) -> Void) {
+        center.requestAuthorization(options: options, completionHandler: completion)
+    }
+
+    func add(_ request: UNNotificationRequest, withCompletionHandler completion: ((Error?) -> Void)?) {
+        center.add(request, withCompletionHandler: completion)
+    }
+}
+
+protocol TonePlaying: AnyObject {
+    func start()
+    func stop()
+    func prepare()
+    func shutdown()
+}
+
 final class AlertManager {
-    private let notificationCenter = UNUserNotificationCenter.current()
-    private let tonePlayer = TonePlayer()
+    private let notificationCenter: NotificationCenterType
+    private let tonePlayer: TonePlaying
+
+    init(
+        notificationCenter: NotificationCenterType = UserNotificationCenterAdapter(),
+        tonePlayer: TonePlaying = TonePlayer()
+    ) {
+        self.notificationCenter = notificationCenter
+        self.tonePlayer = tonePlayer
+    }
 
     func ensureNotificationAuthorization() {
         notificationCenter.getNotificationSettings { settings in
@@ -46,7 +99,7 @@ final class AlertManager {
     }
 }
 
-private final class TonePlayer {
+private final class TonePlayer: TonePlaying {
     private let engine = AVAudioEngine()
     private var sourceNode: AVAudioSourceNode?
     private var isPrepared = false

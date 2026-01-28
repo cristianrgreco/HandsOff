@@ -18,6 +18,8 @@ struct StatsView: View {
                 Text("\(stats.alertsToday)")
                     .font(.body)
                     .monospacedDigit()
+                    .accessibilityLabel("\(stats.alertsToday)")
+                    .accessibilityIdentifier("alerts-today")
             }
 
             HStack(spacing: 8) {
@@ -37,27 +39,31 @@ struct StatsView: View {
                     Image(systemName: "arrow.counterclockwise")
                         .accessibilityLabel("Reset stats")
                 }
+                .accessibilityIdentifier("reset-stats")
                 .buttonStyle(.bordered)
                 .help("Reset stats")
             }
 
             TimelineView(.periodic(from: .now, by: range.refreshInterval)) { context in
                 let buckets = stats.alertBuckets(for: range, now: context.date)
-                let points = buckets.filter { $0.count > 0 }
-                let maxCount = max(1, buckets.map(\.count).max() ?? 1)
+                let points = StatsPresentation.points(from: buckets)
+                let maxCount = StatsPresentation.maxCount(from: buckets)
 
                 Chart(points) { bucket in
                     PointMark(
                         x: .value("Time", bucket.date),
                         y: .value("Touches", bucket.count)
                     )
-                .symbolSize(20)
-            }
-            .chartYScale(domain: 0...maxCount)
-            .chartYAxis {
-                AxisMarks(position: .leading)
-            }
+                    .symbolSize(20)
+                }
+                .chartYScale(domain: 0...maxCount)
+                .chartYAxis {
+                    AxisMarks(position: .leading)
+                }
                 .frame(height: 120)
+                .accessibilityElement()
+                .accessibilityLabel("Alerts chart")
+                .accessibilityIdentifier("alerts-chart")
             }
             .padding(4)
         }
