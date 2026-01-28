@@ -32,7 +32,7 @@ struct MenuBarView: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            Image(systemName: appState.isMonitoring ? "hand.raised.fill" : "hand.raised")
+            Image(systemName: headerSymbolName)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Hands Off")
                     .font(.headline)
@@ -97,7 +97,7 @@ struct MenuBarView: View {
     }
 
     private var statusText: String {
-        if appState.isStarting {
+        if appState.isStarting || appState.isAwaitingCamera {
             return "Starting..."
         }
         if appState.isMonitoring {
@@ -107,13 +107,23 @@ struct MenuBarView: View {
     }
 
     private var statusColor: Color {
-        if appState.isStarting {
+        if appState.isStarting || appState.isAwaitingCamera {
             return .orange
         }
         if appState.isMonitoring {
             return appState.isSnoozed ? .orange : .green
         }
         return .secondary
+    }
+
+    private var headerSymbolName: String {
+        if appState.isStarting || appState.isAwaitingCamera {
+            return "hand.raised"
+        }
+        if appState.isMonitoring {
+            return "hand.raised.fill"
+        }
+        return "hand.raised.slash"
     }
 
     private var previewSection: some View {
@@ -139,7 +149,7 @@ struct MenuBarView: View {
                                 .stroke(appState.previewHit ? .red : .secondary, lineWidth: 2)
                         )
                 } else {
-                    previewPlaceholder(text: "Waiting for camera...")
+                    previewPlaceholder(text: appState.isAwaitingCamera ? "Starting camera..." : "Waiting for camera...")
                 }
             } else if appState.isStarting {
                 previewPlaceholder(text: "Starting camera...")

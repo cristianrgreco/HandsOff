@@ -34,6 +34,7 @@ final class DetectionEngine: NSObject {
     private let onTrigger: () -> Void
     private var onObservation: (DetectionObservation) -> Void = { _ in }
     private var onPreviewFrame: ((CGImage) -> Void)?
+    private var onFrame: (() -> Void)?
     private var sessionMonitor: DispatchSourceTimer?
     private var sessionObservers: [NSObjectProtocol] = []
 
@@ -72,6 +73,12 @@ final class DetectionEngine: NSObject {
     func setPreviewHandler(_ handler: @escaping (CGImage) -> Void) {
         visionQueue.async {
             self.onPreviewFrame = handler
+        }
+    }
+
+    func setFrameHandler(_ handler: @escaping () -> Void) {
+        visionQueue.async {
+            self.onFrame = handler
         }
     }
 
@@ -276,6 +283,7 @@ final class DetectionEngine: NSObject {
     }
 
     private func processFrame(_ sampleBuffer: CMSampleBuffer) {
+        emitFrame()
         let now = CACurrentMediaTime()
         let previewIsEnabled = previewEnabled
 
@@ -355,6 +363,13 @@ final class DetectionEngine: NSObject {
         guard let cgImage = ciContext.createCGImage(image, from: image.extent) else { return }
         DispatchQueue.main.async {
             self.onPreviewFrame?(cgImage)
+        }
+    }
+
+    private func emitFrame() {
+        guard onFrame != nil else { return }
+        DispatchQueue.main.async {
+            self.onFrame?()
         }
     }
 

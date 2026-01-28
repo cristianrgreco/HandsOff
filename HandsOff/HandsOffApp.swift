@@ -14,8 +14,11 @@ struct HandsOffApp: App {
     }
 
     private var menuBarSymbolName: String {
-        if !appState.isMonitoring {
+        if appState.isStarting || appState.isAwaitingCamera {
             return "hand.raised"
+        }
+        if !appState.isMonitoring {
+            return "hand.raised.slash"
         }
         if appState.isSnoozed {
             return "hand.raised.slash.fill"

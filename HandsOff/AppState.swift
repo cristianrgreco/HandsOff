@@ -7,6 +7,7 @@ import Foundation
 final class AppState: ObservableObject {
     @Published private(set) var isMonitoring = false
     @Published private(set) var isStarting = false
+    @Published private(set) var isAwaitingCamera = false
     @Published var lastError: DetectionStartError?
     @Published var previewHit = false
     @Published var previewFaceZone: CGRect?
@@ -31,6 +32,9 @@ final class AppState: ObservableObject {
     private let touchReleaseDebounce: CFTimeInterval = 0.3
     private var resumeMonitoringWhenCameraAvailable = false
     private var deviceObservers: [NSObjectProtocol] = []
+    private var frameStallTimer: Timer?
+    private var lastFrameTime: CFTimeInterval = 0
+    private let frameStallThreshold: CFTimeInterval = 1.2
 
     private lazy var detectionEngine: DetectionEngine = DetectionEngine(
         settingsProvider: { [weak self] in
@@ -74,7 +78,17 @@ final class AppState: ObservableObject {
         }
 
         detectionEngine.setPreviewHandler { [weak self] image in
-            self?.previewImage = image
+            guard let self else { return }
+            self.previewImage = image
+        }
+
+        detectionEngine.setFrameHandler { [weak self] in
+            guard let self else { return }
+            let now = CACurrentMediaTime()
+            self.lastFrameTime = now
+            if self.isAwaitingCamera {
+                self.isAwaitingCamera = false
+            }
         }
 
         settings.$alertBannerEnabled
@@ -222,11 +236,16 @@ final class AppState: ObservableObject {
         }
         lastError = nil
         isStarting = true
+        isAwaitingCamera = true
+        lastFrameTime = 0
+        startFrameStallMonitor()
         detectionEngine.start { [weak self] error in
             guard let self else { return }
             self.isStarting = false
             if let error {
                 self.isMonitoring = false
+                self.isAwaitingCamera = false
+                self.stopFrameStallMonitor()
                 self.lastError = error
                 return
             }
@@ -244,6 +263,8 @@ final class AppState: ObservableObject {
 
     func stopMonitoring() {
         isStarting = false
+        isAwaitingCamera = false
+        stopFrameStallMonitor()
         detectionEngine.stop()
         stats.endMonitoring()
         endMonitoringActivity()
@@ -267,6 +288,34 @@ final class AppState: ObservableObject {
             previewImage = nil
             previewHandPoints = []
         }
+    }
+
+    private func startFrameStallMonitor() {
+        stopFrameStallMonitor()
+        let timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            guard self.isMonitoring || self.isStarting else { return }
+            let now = CACurrentMediaTime()
+            if self.lastFrameTime == 0 {
+                if self.isMonitoring && !self.isAwaitingCamera {
+                    self.isAwaitingCamera = true
+                }
+                return
+            }
+            if now - self.lastFrameTime > self.frameStallThreshold {
+                if !self.isAwaitingCamera {
+                    self.isAwaitingCamera = true
+                }
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        frameStallTimer = timer
+    }
+
+    private func stopFrameStallMonitor() {
+        frameStallTimer?.invalidate()
+        frameStallTimer = nil
+        lastFrameTime = 0
     }
 
     private func updateBlurOverlay(isHit: Bool) {
