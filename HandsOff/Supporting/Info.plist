@@ -18,8 +18,6 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>NSAppSleepDisabled</key>
-	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>HandsOff uses the camera to detect when your hand approaches your face.</string>
 	<key>LSUIElement</key>

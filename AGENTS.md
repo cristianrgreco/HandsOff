@@ -7,6 +7,9 @@ Escalation requirements:
 - `scripts/build_and_run.sh` needs sandbox escalation (it runs `killall`).
 - Any git command needs sandbox escalation.
 
+Project config:
+- Info.plist values are likely generated from `project.yml`, so prefer updating `project.yml` for plist-related changes.
+
 Testing process:
 - Primary test run: `scripts/test.sh` (runs unit tests + UI tests via the HandsOffTests scheme).
 - When running `scripts/test.sh` via tool calls, set a longer timeout (e.g., 5-10 minutes).
