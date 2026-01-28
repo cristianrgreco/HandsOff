@@ -2,26 +2,13 @@ name: Tests
 
 on:
   pull_request:
-  push:
-    branches: [main, testing]
+    branches: [main]
 
 jobs:
   test:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Select Xcode
-        run: |
-          if [ -d /Applications/Xcode_16.2.app ]; then
-            sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-          elif [ -d /Applications/Xcode_16.1.app ]; then
-            sudo xcode-select -s /Applications/Xcode_16.1.app/Contents/Developer
-          elif [ -d /Applications/Xcode_16.app ]; then
-            sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
-          else
-            sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-          fi
-          xcodebuild -version
       - name: Install XcodeGen
         run: |
           if ! command -v xcodegen >/dev/null 2>&1; then
