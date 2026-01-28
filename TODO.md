@@ -8,7 +8,7 @@
 
 # Bugs
 
-- 
+- CPU usage is too high, perhaps reduce frame rate.
 
 # Testing
 
