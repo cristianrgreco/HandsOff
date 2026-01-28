@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      - name: Generate project
+        run: scripts/gen_project.sh
+      - name: Build app (Release)
+        run: |
+          xcodebuild \
+            -project HandsOff.xcodeproj \
+            -scheme HandsOff \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath .build \
+            build
+      - name: Package artifacts
+        run: |
+          APP_PATH=".build/Build/Products/Release/HandsOff.app"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "App not found at $APP_PATH" >&2
+            exit 1
+          fi
+          rm -rf dist
+          mkdir -p dist
+          cp -R "$APP_PATH" dist/HandsOff.app
+          hdiutil create -volname "HandsOff" -srcfolder dist -ov -format UDZO dist/HandsOff.dmg
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: HandsOff-macOS
+          path: |
+            dist/HandsOff.dmg
+      - name: Publish release assets
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/HandsOff.dmg

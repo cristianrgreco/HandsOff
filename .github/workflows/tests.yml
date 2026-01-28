@@ -1,0 +1,18 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main, testing]
+
+jobs:
+  test:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      - name: Generate project
+        run: scripts/gen_project.sh
+      - name: Run tests
+        run: scripts/test.sh
