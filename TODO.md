@@ -8,7 +8,7 @@
 
 # Bugs
 
-- On FaceTime camera, closing and opening laptop lid quickly triggers unresponsive camera alert. Probably look into implementing a better sleep mechanism.
+- 
 
 # Testing
 

@@ -1,6 +1,7 @@
 App code changes:
 - Run `scripts/test.sh`, then `scripts/build_and_run.sh`.
 - Skip this for test-only runs or documentation-only changes.
+- Add or update tests to cover new behaviors.
 
 Escalation requirements:
 - `scripts/build_and_run.sh` needs sandbox escalation (it runs `killall`).

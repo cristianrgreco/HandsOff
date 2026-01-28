@@ -239,6 +239,7 @@ extension AppStateDependencies {
             },
             userDefaults: defaults,
             notificationCenter: .default,
+            workspaceNotificationCenter: .default,
             timerDriver: .live,
             now: Date.init,
             mediaTime: CACurrentMediaTime,

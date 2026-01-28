@@ -88,6 +88,7 @@ struct AppStateDependencies {
     var detectionEngineFactory: DetectionEngineFactory
     var userDefaults: UserDefaults
     var notificationCenter: NotificationCenter
+    var workspaceNotificationCenter: NotificationCenter
     var timerDriver: TimerDriver
     var now: () -> Date
     var mediaTime: () -> CFTimeInterval
@@ -116,6 +117,7 @@ struct AppStateDependencies {
             },
             userDefaults: .standard,
             notificationCenter: .default,
+            workspaceNotificationCenter: NSWorkspace.shared.notificationCenter,
             timerDriver: .live,
             now: Date.init,
             mediaTime: CACurrentMediaTime,

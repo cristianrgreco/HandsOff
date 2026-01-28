@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 import XCTest
 @testable import HandsOff
@@ -447,6 +448,52 @@ final class AppStateTests: XCTestCase {
         XCTAssertNil(defaults.object(forKey: "settings.resumeMonitoringOnLaunch"))
     }
 
+    func testWillSleepStopsMonitoringAndMarksResume() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.willSleepNotification, object: nil)
+
+        XCTAssertFalse(appState.isMonitoring)
+        XCTAssertEqual(harness.detectionEngine.stopCount, 1)
+        XCTAssertTrue(harness.defaults.bool(forKey: "state.resumeMonitoringOnLaunch"))
+    }
+
+    func testDidWakeResumesMonitoringAfterDelay() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.willSleepNotification, object: nil)
+
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+
+        XCTAssertEqual(harness.timerDriver.makeOneShotCount, 1)
+        harness.timerDriver.scheduled.last?.fire()
+        XCTAssertEqual(harness.detectionEngine.startCount, 2)
+    }
+
+    func testWakeGracePeriodSuppressesCameraStallAlert() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        harness.clock.mediaTime = 100
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+        appState._testSetAwaitingCamera(true)
+
+        appState._testEvaluateCameraStall(now: 107)
+
+        XCTAssertFalse(appState.isCameraStalled)
+
+        appState._testEvaluateCameraStall(now: 120)
+
+        XCTAssertTrue(appState.isCameraStalled)
+    }
+
     private struct Harness {
         let appState: AppState
         let settings: SettingsStore
@@ -457,6 +504,7 @@ final class AppStateTests: XCTestCase {
         let loginItemManager: TestLoginItemManager
         let detectionEngine: TestDetectionEngine
         let clock: TestClockRef
+        let workspaceNotificationCenter: NotificationCenter
         let defaults: UserDefaults
         let timerDriver: TestTimerDriver
         let activityCapture: ActivityCapture
@@ -505,6 +553,7 @@ final class AppStateTests: XCTestCase {
         let detectionEngine = TestDetectionEngine()
         let clock = TestClockRef(now: Date(timeIntervalSince1970: 1_700_000_000), mediaTime: 0)
         let notificationCenter = NotificationCenter()
+        let workspaceNotificationCenter = NotificationCenter()
         let timerDriverCapture = TestTimerDriver()
         let timerDriver = timerDriverCapture.makeDriver()
         let activityToken = NSObject()
@@ -532,6 +581,7 @@ final class AppStateTests: XCTestCase {
             },
             userDefaults: resolvedDefaults,
             notificationCenter: notificationCenter,
+            workspaceNotificationCenter: workspaceNotificationCenter,
             timerDriver: timerDriver,
             now: { clock.now },
             mediaTime: { clock.mediaTime },
@@ -553,6 +603,7 @@ final class AppStateTests: XCTestCase {
             loginItemManager: loginItemManager,
             detectionEngine: detectionEngine,
             clock: clock,
+            workspaceNotificationCenter: workspaceNotificationCenter,
             defaults: resolvedDefaults,
             timerDriver: timerDriverCapture,
             activityCapture: activityCapture
