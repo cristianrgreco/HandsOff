@@ -6,15 +6,15 @@ struct HandsOffApp: App {
     @StateObject private var appState: AppState
 
     init() {
+#if DEBUG
         if Self.isUITesting {
             let state = AppState(dependencies: .uiTest())
             _appState = StateObject(wrappedValue: state)
-#if DEBUG
             UITestWindowController.shared.show(appState: state)
-#endif
-        } else {
-            _appState = StateObject(wrappedValue: AppState())
+            return
         }
+#endif
+        _appState = StateObject(wrappedValue: AppState())
     }
 
     var body: some Scene {
