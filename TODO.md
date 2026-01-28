@@ -4,12 +4,11 @@
 
 # UI/UX improvements
 
-- App icon
-- Pipeline to generate a release?
+- 
 
 # Bugs
 
-- 
+- On FaceTime camera, closing and opening laptop lid quickly triggers unresponsive camera alert. Probably look into implementing a better sleep mechanism.
 
 # Testing
 
