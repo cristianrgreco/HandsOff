@@ -239,6 +239,10 @@ final class AppState: ObservableObject {
             settings.cameraID = cameraStore.preferredDeviceID(storedID: settings.cameraID)
         }
         lastError = nil
+        previewImage = nil
+        previewFaceZone = nil
+        previewHit = false
+        previewHandPoints = []
         isStarting = true
         setAwaitingCamera(true)
         lastFrameTime = 0
@@ -328,6 +332,10 @@ final class AppState: ObservableObject {
                 }
                 return
             }
+            previewImage = nil
+            previewFaceZone = nil
+            previewHit = false
+            previewHandPoints = []
             awaitingCameraSince = CACurrentMediaTime()
             isAwaitingCamera = true
             return

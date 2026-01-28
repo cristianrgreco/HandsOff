@@ -164,10 +164,13 @@ struct MenuBarView: View {
             }
         }
         .onAppear {
-            appState.setPreviewEnabled(appState.isMonitoring)
+            appState.setPreviewEnabled(appState.isMonitoring && !appState.isAwaitingCamera)
         }
         .onChange(of: appState.isMonitoring) { isMonitoring in
-            appState.setPreviewEnabled(isMonitoring)
+            appState.setPreviewEnabled(isMonitoring && !appState.isAwaitingCamera)
+        }
+        .onChange(of: appState.isAwaitingCamera) { isAwaiting in
+            appState.setPreviewEnabled(appState.isMonitoring && !isAwaiting)
         }
         .onDisappear {
             appState.setPreviewEnabled(false)
