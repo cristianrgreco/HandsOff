@@ -21,45 +21,21 @@ Gatekeeper warning (if macOS blocks the app):
 - In Finder, right-click the app and choose **Open** (then confirm), or
 - Go to **System Settings → Privacy & Security** and click **Open Anyway**.
 
-### Build locally
+## Local development
 Build requirements (only needed when building from source):
 - macOS 13+
 - Xcode + Command Line Tools
 - `xcodegen` (install via Homebrew: `brew install xcodegen`)
 
-```bash
-./scripts/gen_project.sh
-./scripts/build.sh
-./scripts/run.sh
-```
-
-Release build locally:
-```bash
-./scripts/build_release.sh
-./scripts/run_release.sh
-```
-
-## Build and run locally
-```bash
-./scripts/gen_project.sh
-./scripts/build.sh
-./scripts/run.sh
-```
-
-For fast iteration:
-```bash
-./scripts/build_and_run.sh
-```
-
-Release build + relaunch:
-```bash
-./scripts/build_and_run_release.sh
-```
-
-## Tests
-```bash
-./scripts/test.sh
-```
+Scripts:
+- `./scripts/gen_project.sh` — generate the Xcode project
+- `./scripts/build.sh` — build Debug
+- `./scripts/run.sh` — run Debug
+- `./scripts/build_and_run.sh` — build + relaunch Debug
+- `./scripts/build_release.sh` — build Release
+- `./scripts/run_release.sh` — run Release
+- `./scripts/build_and_run_release.sh` — build + relaunch Release
+- `./scripts/test.sh` — run tests
 
 ## Notes
 - The app will request camera permission on first run.
