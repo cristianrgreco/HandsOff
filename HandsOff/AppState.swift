@@ -8,6 +8,7 @@ final class AppState: ObservableObject {
     @Published private(set) var isMonitoring = false
     @Published private(set) var isStarting = false
     @Published private(set) var isAwaitingCamera = false
+    @Published private(set) var isCameraStalled = false
     @Published var lastError: DetectionStartError?
     @Published var previewHit = false
     @Published var previewFaceZone: CGRect?
@@ -35,6 +36,9 @@ final class AppState: ObservableObject {
     private var frameStallTimer: Timer?
     private var lastFrameTime: CFTimeInterval = 0
     private let frameStallThreshold: CFTimeInterval = 1.2
+    private var awaitingCameraSince: CFTimeInterval?
+    private let cameraStartTimeout: CFTimeInterval = 6.0
+    private var cameraStallAlertShown = false
 
     private lazy var detectionEngine: DetectionEngine = DetectionEngine(
         settingsProvider: { [weak self] in
@@ -87,7 +91,7 @@ final class AppState: ObservableObject {
             let now = CACurrentMediaTime()
             self.lastFrameTime = now
             if self.isAwaitingCamera {
-                self.isAwaitingCamera = false
+                self.setAwaitingCamera(false)
             }
         }
 
@@ -236,7 +240,7 @@ final class AppState: ObservableObject {
         }
         lastError = nil
         isStarting = true
-        isAwaitingCamera = true
+        setAwaitingCamera(true)
         lastFrameTime = 0
         startFrameStallMonitor()
         detectionEngine.start { [weak self] error in
@@ -244,7 +248,7 @@ final class AppState: ObservableObject {
             self.isStarting = false
             if let error {
                 self.isMonitoring = false
-                self.isAwaitingCamera = false
+                self.setAwaitingCamera(false)
                 self.stopFrameStallMonitor()
                 self.lastError = error
                 return
@@ -263,7 +267,7 @@ final class AppState: ObservableObject {
 
     func stopMonitoring() {
         isStarting = false
-        isAwaitingCamera = false
+        setAwaitingCamera(false)
         stopFrameStallMonitor()
         detectionEngine.stop()
         stats.endMonitoring()
@@ -297,15 +301,13 @@ final class AppState: ObservableObject {
             guard self.isMonitoring || self.isStarting else { return }
             let now = CACurrentMediaTime()
             if self.lastFrameTime == 0 {
-                if self.isMonitoring && !self.isAwaitingCamera {
-                    self.isAwaitingCamera = true
-                }
+                self.setAwaitingCamera(true)
+                self.evaluateCameraStall(now: now)
                 return
             }
             if now - self.lastFrameTime > self.frameStallThreshold {
-                if !self.isAwaitingCamera {
-                    self.isAwaitingCamera = true
-                }
+                self.setAwaitingCamera(true)
+                self.evaluateCameraStall(now: now)
             }
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -316,6 +318,89 @@ final class AppState: ObservableObject {
         frameStallTimer?.invalidate()
         frameStallTimer = nil
         lastFrameTime = 0
+    }
+
+    private func setAwaitingCamera(_ awaiting: Bool) {
+        if awaiting {
+            if isAwaitingCamera {
+                if awaitingCameraSince == nil {
+                    awaitingCameraSince = CACurrentMediaTime()
+                }
+                return
+            }
+            awaitingCameraSince = CACurrentMediaTime()
+            isAwaitingCamera = true
+            return
+        }
+        if !isAwaitingCamera && !cameraStallAlertShown && !isCameraStalled {
+            return
+        }
+        awaitingCameraSince = nil
+        cameraStallAlertShown = false
+        isCameraStalled = false
+        isAwaitingCamera = false
+    }
+
+    private func evaluateCameraStall(now: CFTimeInterval) {
+        guard !cameraStallAlertShown else { return }
+        guard let awaitingCameraSince else { return }
+        guard now - awaitingCameraSince >= cameraStartTimeout else { return }
+        cameraStallAlertShown = true
+        isCameraStalled = true
+        presentCameraStallAlert()
+    }
+
+    private func presentCameraStallAlert() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.cameraStore.refresh()
+            let devices = self.cameraStore.devices
+            let cameraName = self.currentCameraName()
+            let alert = NSAlert()
+            alert.messageText = "Camera isn't responding"
+            alert.informativeText = "Hands Off isn't getting frames from “\(cameraName)”. Select a different camera below, or try again."
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Try Again")
+            alert.addButton(withTitle: "Dismiss")
+            let cameraPicker = NSPopUpButton(
+                frame: NSRect(x: 0, y: 0, width: 280, height: 26),
+                pullsDown: false
+            )
+            if devices.isEmpty {
+                cameraPicker.addItem(withTitle: "No cameras detected")
+                cameraPicker.isEnabled = false
+            } else {
+                for device in devices {
+                    let item = NSMenuItem(title: device.localizedName, action: nil, keyEquivalent: "")
+                    item.representedObject = device.uniqueID
+                    cameraPicker.menu?.addItem(item)
+                }
+                if let selectedID = self.settings.cameraID,
+                   let index = devices.firstIndex(where: { $0.uniqueID == selectedID }) {
+                    cameraPicker.selectItem(at: index)
+                }
+            }
+            alert.accessoryView = cameraPicker
+            NSApp.activate(ignoringOtherApps: true)
+            let response = alert.runModal()
+            if let selectedID = cameraPicker.selectedItem?.representedObject as? String,
+               selectedID != self.settings.cameraID {
+                self.settings.cameraID = selectedID
+            }
+            if response == .alertFirstButtonReturn {
+                self.restartMonitoring()
+            }
+        }
+    }
+
+    private func currentCameraName() -> String {
+        guard let cameraID = settings.cameraID else {
+            return "the selected camera"
+        }
+        if let match = cameraStore.devices.first(where: { $0.uniqueID == cameraID }) {
+            return match.localizedName
+        }
+        return "the selected camera"
     }
 
     private func updateBlurOverlay(isHit: Bool) {

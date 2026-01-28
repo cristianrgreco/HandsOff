@@ -97,6 +97,9 @@ struct MenuBarView: View {
     }
 
     private var statusText: String {
+        if appState.isCameraStalled {
+            return "Camera not responding"
+        }
         if appState.isStarting || appState.isAwaitingCamera {
             return "Starting..."
         }
@@ -107,6 +110,9 @@ struct MenuBarView: View {
     }
 
     private var statusColor: Color {
+        if appState.isCameraStalled {
+            return .red
+        }
         if appState.isStarting || appState.isAwaitingCamera {
             return .orange
         }
