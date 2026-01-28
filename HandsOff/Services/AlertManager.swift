@@ -1,6 +1,7 @@
 import AVFoundation
 import Foundation
 import UserNotifications
+import os
 
 protocol NotificationSettingsType {
     var authorizationStatus: UNAuthorizationStatus { get }
@@ -92,7 +93,7 @@ final class AlertManager {
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
             content: content,
-            trigger: UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+            trigger: nil
         )
 
         notificationCenter.add(request, withCompletionHandler: nil)
@@ -104,10 +105,9 @@ private final class TonePlayer: TonePlaying {
     private var sourceNode: AVAudioSourceNode?
     private var isPrepared = false
     private var isPlaying = false
-    private var phase: Float = 0
     private let frequency: Float = 880
     private let amplitude: Float = 0.12
-    private var gain: Float = 0
+    private let gainLock = OSAllocatedUnfairLock(initialState: Float(0))
     private var idleShutdownWorkItem: DispatchWorkItem?
     private let idleShutdownDelay: TimeInterval = 1.0
 
@@ -123,7 +123,7 @@ private final class TonePlayer: TonePlaying {
         engine.mainMixerNode.outputVolume = 0.0
         sourceNode = node
         isPrepared = true
-        gain = 0
+        gainLock.withLock { $0 = 0 }
     }
 
     func start() {
@@ -140,14 +140,14 @@ private final class TonePlayer: TonePlaying {
             }
         }
         engine.mainMixerNode.outputVolume = 1.0
-        gain = 1
+        gainLock.withLock { $0 = 1 }
         isPlaying = true
     }
 
     func stop() {
         guard isPrepared else { return }
         engine.mainMixerNode.outputVolume = 0.0
-        gain = 0
+        gainLock.withLock { $0 = 0 }
         isPlaying = false
         scheduleIdleShutdown()
     }
@@ -156,7 +156,7 @@ private final class TonePlayer: TonePlaying {
         idleShutdownWorkItem?.cancel()
         idleShutdownWorkItem = nil
         guard isPrepared else { return }
-        gain = 0
+        gainLock.withLock { $0 = 0 }
         isPlaying = false
         engine.stop()
         if let sourceNode {
@@ -179,17 +179,18 @@ private final class TonePlayer: TonePlaying {
     }
 
     private func makeSourceNode(sampleRate: Double) -> AVAudioSourceNode {
-        AVAudioSourceNode { [weak self] _, _, frameCount, audioBufferList in
+        var phase: Float = 0
+        return AVAudioSourceNode { [weak self] _, _, frameCount, audioBufferList in
             guard let self else { return noErr }
             let abl = UnsafeMutableAudioBufferListPointer(audioBufferList)
             let delta = 2 * Float.pi * self.frequency / Float(sampleRate)
-            let currentGain = self.gain
+            let currentGain = self.gainLock.withLock { $0 }
 
             for frame in 0..<Int(frameCount) {
-                let sample = sin(self.phase) * self.amplitude * currentGain
-                self.phase += delta
-                if self.phase > 2 * Float.pi {
-                    self.phase -= 2 * Float.pi
+                let sample = sin(phase) * self.amplitude * currentGain
+                phase += delta
+                if phase > 2 * Float.pi {
+                    phase -= 2 * Float.pi
                 }
                 for buffer in abl {
                     let pointer = buffer.mData?.assumingMemoryBound(to: Float.self)

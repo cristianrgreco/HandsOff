@@ -4,6 +4,7 @@ import CoreImage
 import Foundation
 import QuartzCore
 import Vision
+import os
 
 struct DetectionSettings {
     let cameraID: String?
@@ -345,14 +346,14 @@ final class DetectionEngine: NSObject {
     private var sessionObservers: [NSObjectProtocol] = []
 
     private var isConfigured = false
-    private var isRunning = false
+    private let isRunningLock = OSAllocatedUnfairLock(initialState: false)
     private var isProcessing = false
     private var isInterrupted = false
     private var previewEnabled = false
     private var activeCameraID: String?
     private var lastFaceBoundingBox: CGRect?
     private var lastFaceTime: CFTimeInterval = 0
-    private var lastFrameTime: CFTimeInterval = 0
+    private let lastFrameTimeLock = OSAllocatedUnfairLock(initialState: CFTimeInterval(0))
     private var triggerState = DetectionTriggerState()
     private let ciContext = CIContext()
     private let sensitivity: Sensitivity = .low
@@ -393,6 +394,16 @@ final class DetectionEngine: NSObject {
         self.authorizationStatus = authorizationStatus
         self.requestAccess = requestAccess
         super.init()
+    }
+
+    private var isRunning: Bool {
+        get { isRunningLock.withLock { $0 } }
+        set { isRunningLock.withLock { $0 = newValue } }
+    }
+
+    private var lastFrameTime: CFTimeInterval {
+        get { lastFrameTimeLock.withLock { $0 } }
+        set { lastFrameTimeLock.withLock { $0 = newValue } }
     }
 
     func setObservationHandler(_ handler: @escaping (DetectionObservation) -> Void) {

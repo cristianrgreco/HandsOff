@@ -69,7 +69,9 @@ final class StatsStore: ObservableObject {
         self.alertHistory = defaults.array(forKey: Keys.alertHistory) as? [TimeInterval] ?? []
 
         rolloverIfNeeded()
-        pruneHistory()
+        if pruneHistory() {
+            saveHistory()
+        }
     }
 
     func recordAlert(now: Date = Date()) {
@@ -103,7 +105,9 @@ final class StatsStore: ObservableObject {
     }
 
     func alertBuckets(for range: AlertRange, now: Date = Date()) -> [AlertBucket] {
-        pruneHistory(now: now)
+        if pruneHistory(now: now) {
+            saveHistory()
+        }
         let end = alignedEnd(for: range, now: now)
         let start = end.addingTimeInterval(-range.window)
         let bucketCount = max(1, Int(range.window / range.bucket))
@@ -194,10 +198,13 @@ final class StatsStore: ObservableObject {
         defaults.set(alertHistory, forKey: Keys.alertHistory)
     }
 
-    private func pruneHistory(now: Date = Date()) {
+    @discardableResult
+    private func pruneHistory(now: Date = Date()) -> Bool {
         let cutoff = now.timeIntervalSince1970 - historyRetention
-        if alertHistory.isEmpty { return }
+        if alertHistory.isEmpty { return false }
+        let originalCount = alertHistory.count
         alertHistory = alertHistory.filter { $0 >= cutoff }
+        return alertHistory.count != originalCount
     }
 
     private static func dateKey(_ date: Date) -> String {

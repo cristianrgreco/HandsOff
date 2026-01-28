@@ -49,6 +49,7 @@ final class AppState: ObservableObject {
     private let cameraStartTimeout: CFTimeInterval = 6.0
     private var cameraStallAlertShown = false
     private var isSoundPlaying = false
+    private var startRequestID: UUID?
     private static let isTesting = {
         let environment = ProcessInfo.processInfo.environment
         if ProcessInfo.processInfo.arguments.contains("UI_TESTING") { return true }
@@ -265,6 +266,8 @@ final class AppState: ObservableObject {
 
     func startMonitoring() {
         guard !isMonitoring, !isStarting else { return }
+        let requestID = UUID()
+        startRequestID = requestID
         cameraStore.refresh()
         let availableDevices = cameraStore.devices
         if settings.cameraID == nil || availableDevices.contains(where: { $0.id == settings.cameraID }) == false {
@@ -281,6 +284,8 @@ final class AppState: ObservableObject {
         startFrameStallMonitor()
         detectionEngine.start { [weak self] error in
             guard let self else { return }
+            guard self.startRequestID == requestID, self.isStarting else { return }
+            self.startRequestID = nil
             self.isStarting = false
             if let error {
                 self.isMonitoring = false
@@ -302,6 +307,7 @@ final class AppState: ObservableObject {
     }
 
     func stopMonitoring() {
+        startRequestID = nil
         isStarting = false
         setAwaitingCamera(false)
         stopFrameStallMonitor()
