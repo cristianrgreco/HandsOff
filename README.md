@@ -14,11 +14,6 @@ https://github.com/user-attachments/assets/54b25e97-0729-4edf-95ea-c16abf4e68fd
 - On-device processing only.
 - No video/images are stored or uploaded.
 
-## Requirements
-- macOS 13+
-- Xcode + Command Line Tools
-- `xcodegen` (install via Homebrew: `brew install xcodegen`)
-
 ## Installation
 **Recommended:** download the latest release DMG from GitHub Releases and drag `HandsOff.app` to Applications.
 
@@ -27,6 +22,11 @@ Gatekeeper warning (if macOS blocks the app):
 - Go to **System Settings → Privacy & Security** and click **Open Anyway**.
 
 ### Build locally
+Build requirements (only needed when building from source):
+- macOS 13+
+- Xcode + Command Line Tools
+- `xcodegen` (install via Homebrew: `brew install xcodegen`)
+
 ```bash
 ./scripts/gen_project.sh
 ./scripts/build.sh
