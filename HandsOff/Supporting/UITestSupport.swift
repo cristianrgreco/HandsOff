@@ -85,6 +85,7 @@ final class UITestDetectionEngine: DetectionEngineType {
     private var isRunning = false
     private var hasCompletedStart = false
     private var pendingStartWork: DispatchWorkItem?
+    private var frameTimer: DispatchSourceTimer?
 
     init(config: UITestConfig, onTrigger: @escaping () -> Void) {
         self.config = config
@@ -102,6 +103,7 @@ final class UITestDetectionEngine: DetectionEngineType {
         didEmitObservation = false
         hasCompletedStart = false
         isRunning = true
+        startFrameTimer()
         let work = DispatchWorkItem { [weak self] in
             guard let self, self.isRunning else { return }
             self.hasCompletedStart = true
@@ -125,6 +127,8 @@ final class UITestDetectionEngine: DetectionEngineType {
         isRunning = false
         pendingStartWork?.cancel()
         pendingStartWork = nil
+        frameTimer?.cancel()
+        frameTimer = nil
     }
 
     func setObservationHandler(_ handler: @escaping (DetectionObservation) -> Void) {
@@ -146,6 +150,19 @@ final class UITestDetectionEngine: DetectionEngineType {
 
     func setFrameInterval(_ interval: CFTimeInterval) {
         // No-op for UI tests.
+    }
+
+    private func startFrameTimer() {
+        guard config.emitFrame else { return }
+        frameTimer?.cancel()
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + 0.5, repeating: 0.5)
+        timer.setEventHandler { [weak self] in
+            guard let self, self.isRunning, self.hasCompletedStart else { return }
+            self.frameHandler?()
+        }
+        frameTimer = timer
+        timer.resume()
     }
 
     private func emitPreviewIfNeeded() {
