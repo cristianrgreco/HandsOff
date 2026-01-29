@@ -92,7 +92,7 @@ final class StatsStoreTests: XCTestCase {
         let calendar = Calendar(identifier: .gregorian)
         var components = DateComponents()
         components.calendar = calendar
-        components.timeZone = TimeZone(secondsFromGMT: 0)
+        components.timeZone = TimeZone.current
         components.year = 2023
         components.month = 1
         components.day = 1

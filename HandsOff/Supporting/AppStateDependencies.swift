@@ -166,11 +166,11 @@ struct AppStateDependencies {
                 alert.accessoryView = cameraPicker
                 NSApp.activate(ignoringOtherApps: true)
                 let response = alert.runModal()
-            if let newSelectedID = cameraPicker.selectedItem?.representedObject as? String,
-               newSelectedID != (selectedID ?? "") {
-                onSelect(newSelectedID)
-            }
                 if response == .alertFirstButtonReturn {
+                    if let newSelectedID = cameraPicker.selectedItem?.representedObject as? String,
+                       newSelectedID != (selectedID ?? "") {
+                        onSelect(newSelectedID)
+                    }
                     onRetry()
                 }
             }

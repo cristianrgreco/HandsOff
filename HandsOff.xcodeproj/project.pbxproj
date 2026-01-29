@@ -18,6 +18,7 @@
 		4771D1C9EA28D32F528E22D0 /* DetectionEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5CC8B276D24E4EC3284AF24 /* DetectionEngineTests.swift */; };
 		4870789921E39FF16499BBF6 /* UITestWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26F07C7EF669FD2E9FE00F84 /* UITestWindowController.swift */; };
 		4C5B7AA082370D55E83E0E02 /* PreviewFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7790AC94586ED71E596273A /* PreviewFrameView.swift */; };
+		B1C2D3E4F5A60718293A4B5C /* PreviewFrameGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* PreviewFrameGeometry.swift */; };
 		4DBD2BC691C610F0FC78D1FB /* DetectionOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */; };
 		5114431CF6E03B1FFE108021 /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DD63BD4D16F9473920295B /* SettingsStoreTests.swift */; };
 		5276E9C5C4D6258655DEEB6D /* MenuBarStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99DEDDFDEBEADE16CE05C3E /* MenuBarStatus.swift */; };
@@ -38,6 +39,7 @@
 		B95F4F6CE96A321EA9AF7EC0 /* StatsPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82AB6AB453450DCD5910D69F /* StatsPresentation.swift */; };
 		BAB75445F8FAEA653D5139A2 /* AlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 340EA053A14912C60246F6E4 /* AlertManager.swift */; };
 		C14E153953B07A7188672338 /* StatsPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C317E7F7E37C6B7B4735D75B /* StatsPresentationTests.swift */; };
+		D1E2F3A4B5C60718293A4B5C /* PreviewFrameGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2E3F4A5B60718293A4B5C /* PreviewFrameGeometryTests.swift */; };
 		C82F400883BB1392D32B41AF /* DetectionEngineRestartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7A3359AAD98DFE714C1B08 /* DetectionEngineRestartTests.swift */; };
 		CF0FD4F99DAB2C1D7320974B /* CameraStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E88109BC34A9A193DF2415 /* CameraStore.swift */; };
 		CF5A85D8F68F604A4BA99EE1 /* AlertManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 172F7F44656655A844394E14 /* AlertManagerTests.swift */; };
@@ -108,9 +110,11 @@
 		A9DD63BD4D16F9473920295B /* SettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStoreTests.swift; sourceTree = "<group>"; };
 		AC7A3359AAD98DFE714C1B08 /* DetectionEngineRestartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionEngineRestartTests.swift; sourceTree = "<group>"; };
 		AEC9D511C9D1E2E5B7FD0059 /* DetectionGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectionGeometryTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* PreviewFrameGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFrameGeometry.swift; sourceTree = "<group>"; };
 		B38DA9A0037B00BC83106CB1 /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemManager.swift; sourceTree = "<group>"; };
 		BBB87CFAFE32C538E0CACAE7 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		C317E7F7E37C6B7B4735D75B /* StatsPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsPresentationTests.swift; sourceTree = "<group>"; };
+		C1D2E3F4A5B60718293A4B5C /* PreviewFrameGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFrameGeometryTests.swift; sourceTree = "<group>"; };
 		C3EA664A2C98A450CF8C99A5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		C3FA45B621ACF95D18F0C578 /* AppStateDependenciesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateDependenciesTests.swift; sourceTree = "<group>"; };
 		D34DA461B8B59AA13DFC8E10 /* UITestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestSupport.swift; sourceTree = "<group>"; };
@@ -170,6 +174,7 @@
 				7CDC8EC6650341DAE7F2BE16 /* DetectionTriggerStateTests.swift */,
 				072D5B9C4D27C026605B8FE0 /* LoginItemManagerTests.swift */,
 				F37FE51CDDB0BCE4D9A250D0 /* MenuBarStatusTests.swift */,
+				C1D2E3F4A5B60718293A4B5C /* PreviewFrameGeometryTests.swift */,
 				FBC6B7E4A6884D6B157671B1 /* SettingsPresentationTests.swift */,
 				E3EAD2AEC8E0CB290FB08C77 /* SettingsStoreEnumTests.swift */,
 				A9DD63BD4D16F9473920295B /* SettingsStoreTests.swift */,
@@ -196,6 +201,7 @@
 				E0C81AB35F8A83D3D8415174 /* BlurOverlayController.swift */,
 				221966DEA749CE3A0CE5B195 /* DetectionOverlayView.swift */,
 				BBB87CFAFE32C538E0CACAE7 /* MenuBarView.swift */,
+				A1B2C3D4E5F60718293A4B5C /* PreviewFrameGeometry.swift */,
 				E7790AC94586ED71E596273A /* PreviewFrameView.swift */,
 				C3EA664A2C98A450CF8C99A5 /* SettingsView.swift */,
 				628947D253CBBB064E7AFFF4 /* StatsView.swift */,
@@ -369,6 +375,7 @@
 				EA0B297594E4173C96B8DB19 /* DetectionTriggerStateTests.swift in Sources */,
 				9EE2AFEEF0C43EBD23EAAF3B /* LoginItemManagerTests.swift in Sources */,
 				13D661401A9AF8026514C64F /* MenuBarStatusTests.swift in Sources */,
+				D1E2F3A4B5C60718293A4B5C /* PreviewFrameGeometryTests.swift in Sources */,
 				865D2E9651D92DE9A3536DED /* SettingsPresentationTests.swift in Sources */,
 				19117455DDA9A12D56B18286 /* SettingsStoreEnumTests.swift in Sources */,
 				5114431CF6E03B1FFE108021 /* SettingsStoreTests.swift in Sources */,
@@ -394,6 +401,7 @@
 				20F84713F8195386F8D04B3F /* LoginItemManager.swift in Sources */,
 				5276E9C5C4D6258655DEEB6D /* MenuBarStatus.swift in Sources */,
 				FB7B056F4AC1FA7A229111D4 /* MenuBarView.swift in Sources */,
+				B1C2D3E4F5A60718293A4B5C /* PreviewFrameGeometry.swift in Sources */,
 				4C5B7AA082370D55E83E0E02 /* PreviewFrameView.swift in Sources */,
 				6006AFBB4FDB988979B96821 /* SettingsPresentation.swift in Sources */,
 				A00D4B1F6544897E3696827D /* SettingsStore.swift in Sources */,

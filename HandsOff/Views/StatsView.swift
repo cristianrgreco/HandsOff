@@ -49,6 +49,7 @@ struct StatsView: View {
                 let buckets = stats.alertBuckets(for: range, now: context.date)
                 let points = StatsPresentation.points(from: buckets)
                 let maxCount = StatsPresentation.maxCount(from: buckets)
+                let domain = StatsPresentation.chartDomain(for: buckets, range: range, now: context.date)
 
                 Chart(points) { bucket in
                     PointMark(
@@ -57,6 +58,7 @@ struct StatsView: View {
                     )
                     .symbolSize(20)
                 }
+                .chartXScale(domain: domain)
                 .chartYScale(domain: 0...maxCount)
                 .chartYAxis {
                     AxisMarks(position: .leading)

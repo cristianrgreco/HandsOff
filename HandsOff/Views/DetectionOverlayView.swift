@@ -29,7 +29,7 @@ struct DetectionOverlayView: View {
                         )
                         .position(x: point.x, y: point.y)
                         .accessibilityElement()
-                        .accessibilityIdentifier("hand-point")
+                        .accessibilityIdentifier("hand-point-\(index)")
                 }
 
                 if DetectionOverlayPresentation.showsAlert(isHit: isHit) {
