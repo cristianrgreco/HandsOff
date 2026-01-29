@@ -17,6 +17,7 @@ final class AppState: ObservableObject {
     @Published var previewImage: CGImage?
     @Published var previewHandPoints: [CGPoint] = []
     @Published private(set) var snoozedUntil: Date?
+    @Published private(set) var isAwaitingPermission = false
 
     let settings: SettingsStore
     let stats: StatsStore
@@ -33,6 +34,7 @@ final class AppState: ObservableObject {
     private let now: () -> Date
     private let mediaTime: () -> CFTimeInterval
     private let cameraAuthorizationStatus: () -> AVAuthorizationStatus
+    private let requestCameraAccess: (@escaping (Bool) -> Void) -> Void
     private let openCameraSettingsHandler: () -> Void
     private let terminateAppHandler: () -> Void
     private let activityController: ActivityController
@@ -62,6 +64,7 @@ final class AppState: ObservableObject {
     private var monitoringBeforeSleep = false
     private var lastWakeTime: CFTimeInterval?
     private var lastCameraAuthorizationStatus: AVAuthorizationStatus
+    private var pendingAutoStartAfterPermission = false
     private let wakeResumeDelay: TimeInterval = 1.0
     private let wakeGracePeriod: CFTimeInterval = 8.0
     private let frameIntervalOnAC: CFTimeInterval = 1.0 / 10.0
@@ -99,6 +102,9 @@ final class AppState: ObservableObject {
     }
 
     var isAwaitingCameraPermission: Bool {
+        if isAwaitingPermission {
+            return true
+        }
         guard isStarting || isAwaitingCamera else { return false }
         return cameraAuthorizationStatus() == .notDetermined
     }
@@ -123,6 +129,7 @@ final class AppState: ObservableObject {
         self.now = dependencies.now
         self.mediaTime = dependencies.mediaTime
         self.cameraAuthorizationStatus = dependencies.cameraAuthorizationStatus
+        self.requestCameraAccess = dependencies.requestCameraAccess
         self.lastCameraAuthorizationStatus = dependencies.cameraAuthorizationStatus()
         self.openCameraSettingsHandler = dependencies.openCameraSettings
         self.terminateAppHandler = dependencies.terminateApp
@@ -309,13 +316,31 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func requestCameraAccessIfNeeded() {
+    func requestCameraAccessIfNeeded() {
         let status = cameraAuthorizationStatus()
         guard status == .notDetermined else { return }
-        AVCaptureDevice.requestAccess(for: .video) { _ in }
+        guard !pendingAutoStartAfterPermission else { return }
+        pendingAutoStartAfterPermission = true
+        isAwaitingPermission = true
+        requestCameraAccess { [weak self] granted in
+            guard let self else { return }
+            DispatchQueue.main.async {
+                self.isAwaitingPermission = false
+                guard self.pendingAutoStartAfterPermission else { return }
+                self.pendingAutoStartAfterPermission = false
+                guard granted else { return }
+                guard !self.isMonitoring, !self.isStarting else { return }
+                self.startMonitoring()
+            }
+        }
     }
 
     func toggleMonitoring() {
+        if isAwaitingPermission && pendingAutoStartAfterPermission {
+            pendingAutoStartAfterPermission = false
+            isAwaitingPermission = false
+            return
+        }
         if isMonitoring || isStarting {
             stopMonitoring()
         } else {
@@ -697,6 +722,10 @@ final class AppState: ObservableObject {
 
 #if DEBUG
 extension AppState {
+    func _testRequestCameraAccessIfNeeded() {
+        requestCameraAccessIfNeeded()
+    }
+
     func _testEvaluateCameraStall(now: CFTimeInterval) {
         evaluateCameraStall(now: now)
     }

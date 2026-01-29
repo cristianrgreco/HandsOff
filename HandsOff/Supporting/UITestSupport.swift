@@ -262,6 +262,9 @@ extension AppStateDependencies {
             now: Date.init,
             mediaTime: CACurrentMediaTime,
             cameraAuthorizationStatus: { .authorized },
+            requestCameraAccess: { completion in
+                completion(true)
+            },
             openCameraSettings: {},
             terminateApp: {},
             activityController: ActivityController(begin: { _ in NSObject() }, end: { _ in }),

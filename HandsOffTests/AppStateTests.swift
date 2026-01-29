@@ -424,6 +424,83 @@ final class AppStateTests: XCTestCase {
         XCTAssertFalse(appState.isCameraStalled)
     }
 
+    func testPermissionGrantAutoStartsMonitoringAfterPrompt() {
+        var requestCount = 0
+        let harness = makeHarness(
+            cameraAuthorizationStatus: { .notDetermined },
+            requestCameraAccess: { completion in
+                requestCount += 1
+                completion(true)
+            }
+        )
+        let appState = harness.appState
+
+        appState._testRequestCameraAccessIfNeeded()
+        XCTAssertEqual(requestCount, 1)
+
+        let expectation = expectation(description: "auto start monitoring")
+        DispatchQueue.main.async {
+            if appState.isStarting {
+                expectation.fulfill()
+            }
+        }
+        wait(for: [expectation], timeout: 1.0)
+        XCTAssertTrue(appState.isStarting)
+        XCTAssertEqual(harness.detectionEngine.startCount, 1)
+    }
+
+    func testPermissionRequestUpdatesAwaitingPermissionStatus() {
+        var capturedCompletion: ((Bool) -> Void)?
+        let harness = makeHarness(
+            cameraAuthorizationStatus: { .notDetermined },
+            requestCameraAccess: { completion in
+                capturedCompletion = completion
+            }
+        )
+        let appState = harness.appState
+
+        appState._testRequestCameraAccessIfNeeded()
+        XCTAssertTrue(appState.isAwaitingCameraPermission)
+
+        let expectation = expectation(description: "permission resolves")
+        DispatchQueue.main.async {
+            capturedCompletion?(false)
+            DispatchQueue.main.async {
+                expectation.fulfill()
+            }
+        }
+        wait(for: [expectation], timeout: 1.0)
+        XCTAssertFalse(appState.isAwaitingCameraPermission)
+    }
+
+    func testToggleMonitoringCancelsPendingPermissionAutoStart() {
+        var capturedCompletion: ((Bool) -> Void)?
+        let harness = makeHarness(
+            cameraAuthorizationStatus: { .notDetermined },
+            requestCameraAccess: { completion in
+                capturedCompletion = completion
+            }
+        )
+        let appState = harness.appState
+
+        appState._testRequestCameraAccessIfNeeded()
+        XCTAssertTrue(appState.isAwaitingCameraPermission)
+
+        appState.toggleMonitoring()
+        XCTAssertFalse(appState.isAwaitingCameraPermission)
+        XCTAssertEqual(harness.detectionEngine.startCount, 0)
+
+        let expectation = expectation(description: "permission completion")
+        DispatchQueue.main.async {
+            capturedCompletion?(true)
+            DispatchQueue.main.async {
+                expectation.fulfill()
+            }
+        }
+        wait(for: [expectation], timeout: 1.0)
+        XCTAssertEqual(harness.detectionEngine.startCount, 0)
+    }
+
     func testPowerStateUpdatesFrameInterval() {
         let powerMonitor = TestPowerStateMonitor(state: .pluggedIn)
         let harness = makeHarness(powerStateMonitor: powerMonitor)
@@ -614,6 +691,7 @@ final class AppStateTests: XCTestCase {
         terminateApp: (() -> Void)? = nil,
         cameraStallPresenter: CameraStallAlertPresenter? = nil,
         cameraAuthorizationStatus: (() -> AVAuthorizationStatus)? = nil,
+        requestCameraAccess: (((@escaping (Bool) -> Void) -> Void))? = nil,
         powerStateMonitor: TestPowerStateMonitor? = nil
     ) -> Harness {
         let suiteName = "HandsOffTests.AppState.\(UUID().uuidString)"
@@ -674,6 +752,9 @@ final class AppStateTests: XCTestCase {
             now: { clock.now },
             mediaTime: { clock.mediaTime },
             cameraAuthorizationStatus: cameraAuthorizationStatus ?? { .authorized },
+            requestCameraAccess: requestCameraAccess ?? { completion in
+                completion(true)
+            },
             openCameraSettings: openCameraSettings ?? {},
             terminateApp: terminateApp ?? {},
             activityController: activityController,

@@ -36,12 +36,13 @@ struct MenuBarStatus {
         isStarting: Bool,
         isAwaitingCamera: Bool,
         isSnoozed: Bool,
-        isCameraStalled: Bool
+        isCameraStalled: Bool,
+        isAwaitingPermission: Bool = false
     ) -> StatusTone {
         if isCameraStalled {
             return .red
         }
-        if isStarting || isAwaitingCamera {
+        if isAwaitingPermission || isStarting || isAwaitingCamera {
             return .orange
         }
         if isMonitoring {
@@ -54,9 +55,10 @@ struct MenuBarStatus {
         isMonitoring: Bool,
         isStarting: Bool,
         isAwaitingCamera: Bool,
-        isSnoozed: Bool
+        isSnoozed: Bool,
+        isAwaitingPermission: Bool = false
     ) -> String {
-        if isStarting || isAwaitingCamera {
+        if isAwaitingPermission || isStarting || isAwaitingCamera {
             return "hand.raised"
         }
         if isMonitoring {
@@ -69,9 +71,10 @@ struct MenuBarStatus {
         isMonitoring: Bool,
         isStarting: Bool,
         isAwaitingCamera: Bool,
-        isSnoozed: Bool
+        isSnoozed: Bool,
+        isAwaitingPermission: Bool = false
     ) -> String {
-        if isStarting || isAwaitingCamera {
+        if isAwaitingPermission || isStarting || isAwaitingCamera {
             return "hand.raised"
         }
         if !isMonitoring {
@@ -83,8 +86,8 @@ struct MenuBarStatus {
         return "hand.raised.fill"
     }
 
-    static func primaryActionTitle(isMonitoring: Bool, isStarting: Bool) -> String {
-        if isMonitoring || isStarting {
+    static func primaryActionTitle(isMonitoring: Bool, isStarting: Bool, isAwaitingPermission: Bool = false) -> String {
+        if isMonitoring || isStarting || isAwaitingPermission {
             return isMonitoring ? "Stop" : "Cancel"
         }
         return "Start"
