@@ -360,7 +360,7 @@ final class DetectionEngine: NSObject {
 
     private let confidenceThreshold: Float = 0.75
     private let hairTopMargin: CGFloat = 0.25
-    private let frameIntervalLock = OSAllocatedUnfairLock(initialState: CFTimeInterval(1.0 / 8.0))
+    private let frameIntervalLock = OSAllocatedUnfairLock(initialState: CFTimeInterval(1.0 / 10.0))
     private let sessionPresetValue: AVCaptureSession.Preset = .low
     private let staleFrameThreshold: CFTimeInterval = 1.0
     private let faceCacheDuration: CFTimeInterval = 2.0

@@ -16,6 +16,10 @@ final class HandsOffUITests: XCTestCase {
         return window
     }
 
+    private func element(_ identifier: String, in window: XCUIElement) -> XCUIElement {
+        window.descendants(matching: .any)[identifier]
+    }
+
     private func textValue(_ element: XCUIElement) -> String {
         if !element.label.isEmpty {
             return element.label
@@ -182,7 +186,7 @@ final class HandsOffUITests: XCTestCase {
         let app = launchApp()
         let window = mainWindow(in: app)
 
-        XCTAssertFalse(window.otherElements["fps-badge"].exists)
+        XCTAssertFalse(element("fps-badge", in: window).exists)
     }
 
     func testFPSBadgeShowsLowPowerRate() {
@@ -193,7 +197,7 @@ final class HandsOffUITests: XCTestCase {
         let window = mainWindow(in: app)
         window.buttons["primary-action"].click()
 
-        let badge = window.otherElements["fps-badge"]
+        let badge = element("fps-badge", in: window)
         XCTAssertTrue(badge.waitForExistence(timeout: 2))
         XCTAssertEqual(textValue(badge), "2 FPS")
     }

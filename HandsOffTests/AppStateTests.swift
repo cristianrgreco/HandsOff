@@ -428,13 +428,25 @@ final class AppStateTests: XCTestCase {
         let powerMonitor = TestPowerStateMonitor(state: .pluggedIn)
         let harness = makeHarness(powerStateMonitor: powerMonitor)
 
-        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 10.0, accuracy: 0.0001)
+        guard let initialInterval = harness.detectionEngine.frameIntervalValues.last else {
+            XCTFail("Missing initial frame interval")
+            return
+        }
+        XCTAssertEqual(initialInterval, 1.0 / 10.0, accuracy: 0.0001)
 
         powerMonitor.send(.onBattery)
-        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 5.0, accuracy: 0.0001)
+        guard let batteryInterval = harness.detectionEngine.frameIntervalValues.last else {
+            XCTFail("Missing battery frame interval")
+            return
+        }
+        XCTAssertEqual(batteryInterval, 1.0 / 5.0, accuracy: 0.0001)
 
         powerMonitor.send(.lowPower)
-        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 2.0, accuracy: 0.0001)
+        guard let lowPowerInterval = harness.detectionEngine.frameIntervalValues.last else {
+            XCTFail("Missing low power frame interval")
+            return
+        }
+        XCTAssertEqual(lowPowerInterval, 1.0 / 2.0, accuracy: 0.0001)
     }
 
     func testCameraStallSelectionUpdatesCameraID() {

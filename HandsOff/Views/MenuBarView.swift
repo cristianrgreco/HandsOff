@@ -160,6 +160,7 @@ struct MenuBarView: View {
         .padding(.vertical, 2)
         .background(color.opacity(0.85))
         .clipShape(RoundedRectangle(cornerRadius: 4))
+        .accessibilityElement(children: .combine)
         .accessibilityLabel("\(appState.currentFPS) FPS")
         .accessibilityIdentifier("fps-badge")
     }

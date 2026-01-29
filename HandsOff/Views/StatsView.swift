@@ -41,6 +41,8 @@ struct StatsView: View {
                 }
                 .accessibilityIdentifier("reset-stats")
                 .buttonStyle(.bordered)
+                .tint(.red)
+                .controlSize(.small)
                 .help("Reset stats")
             }
 
