@@ -36,13 +36,12 @@ struct StatsView: View {
                 Button {
                     stats.resetAll()
                 } label: {
-                    Image(systemName: "arrow.counterclockwise")
+                    Image(systemName: "trash")
                         .accessibilityLabel("Reset stats")
                 }
                 .accessibilityIdentifier("reset-stats")
                 .buttonStyle(.bordered)
                 .tint(.red)
-                .controlSize(.small)
                 .help("Reset stats")
             }
 

@@ -54,7 +54,6 @@ struct MenuBarView: View {
                         appState.resumeFromSnooze()
                     }
                     .buttonStyle(.bordered)
-                    .controlSize(.small)
                     .help("Resume alerts")
                 } else {
                     Menu {
@@ -71,7 +70,6 @@ struct MenuBarView: View {
                         Text("Snooze")
                     }
                     .menuStyle(.borderedButton)
-                    .controlSize(.small)
                     .help("Snooze alerts")
                 }
             }
@@ -87,7 +85,6 @@ struct MenuBarView: View {
                 .accessibilityIdentifier("primary-action")
                 .buttonStyle(.bordered)
                 .tint(.red)
-                .controlSize(.small)
                 .help(appState.isMonitoring ? "Stop monitoring" : "Cancel start")
             } else {
                 Button {
@@ -101,7 +98,6 @@ struct MenuBarView: View {
                 .accessibilityIdentifier("primary-action")
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
-                .controlSize(.small)
                 .help("Start monitoring")
             }
 
@@ -285,7 +281,6 @@ struct MenuBarView: View {
                 appState.terminateApp()
             }
             .buttonStyle(.bordered)
-            .controlSize(.small)
             .help("Quit Hands Off")
         }
         .padding(.top, 2)
