@@ -13,10 +13,14 @@ struct MenuBarStatus {
         isStarting: Bool,
         isAwaitingCamera: Bool,
         isSnoozed: Bool,
-        isCameraStalled: Bool
+        isCameraStalled: Bool,
+        isAwaitingPermission: Bool = false
     ) -> String {
         if isCameraStalled {
             return "Camera not responding"
+        }
+        if isAwaitingPermission {
+            return "Waiting for camera permission..."
         }
         if isStarting || isAwaitingCamera {
             return "Starting..."

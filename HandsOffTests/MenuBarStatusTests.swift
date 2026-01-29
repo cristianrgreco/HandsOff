@@ -119,6 +119,20 @@ final class MenuBarStatusTests: XCTestCase {
         )
     }
 
+    func testStatusTextShowsPermissionPromptWhenAwaitingPermission() {
+        XCTAssertEqual(
+            MenuBarStatus.statusText(
+                isMonitoring: false,
+                isStarting: true,
+                isAwaitingCamera: true,
+                isSnoozed: false,
+                isCameraStalled: false,
+                isAwaitingPermission: true
+            ),
+            "Waiting for camera permission..."
+        )
+    }
+
     func testSymbols() {
         XCTAssertEqual(
             MenuBarStatus.menuBarSymbolName(

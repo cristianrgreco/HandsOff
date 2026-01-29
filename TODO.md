@@ -1,6 +1,6 @@
 # Features
 
-- 
+- Battery mode which reduces FPS? When plugged in can increase?
 
 # UI/UX improvements
 

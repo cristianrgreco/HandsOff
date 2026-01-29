@@ -211,10 +211,10 @@ final class DetectionEngineTests: XCTestCase {
         XCTAssertEqual(engine._testFrameInterval(previewEnabled: false), 1.0 / 4.0, accuracy: 0.0001)
     }
 
-    func testSessionPresetVariesWithPreviewState() {
+    func testSessionPresetIsLowForPreviewAndIdle() {
         let engine = makeEngine()
 
-        XCTAssertEqual(engine._testSessionPreset(previewEnabled: true), .medium)
+        XCTAssertEqual(engine._testSessionPreset(previewEnabled: true), .low)
         XCTAssertEqual(engine._testSessionPreset(previewEnabled: false), .low)
     }
 

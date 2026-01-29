@@ -362,8 +362,7 @@ final class DetectionEngine: NSObject {
     private let hairTopMargin: CGFloat = 0.25
     private let previewFrameInterval: CFTimeInterval = 1.0 / 8.0
     private let idleFrameInterval: CFTimeInterval = 1.0 / 4.0
-    private let previewSessionPreset: AVCaptureSession.Preset = .medium
-    private let idleSessionPreset: AVCaptureSession.Preset = .low
+    private let sessionPresetValue: AVCaptureSession.Preset = .low
     private let staleFrameThreshold: CFTimeInterval = 1.0
     private let faceCacheDuration: CFTimeInterval = 2.0
 #if DEBUG
@@ -692,7 +691,7 @@ final class DetectionEngine: NSObject {
 
 
     private func sessionPreset(previewEnabled: Bool) -> AVCaptureSession.Preset {
-        previewEnabled ? previewSessionPreset : idleSessionPreset
+        sessionPresetValue
     }
 
     private func updateSessionPreset(previewEnabled: Bool) {

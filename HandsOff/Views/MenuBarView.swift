@@ -114,7 +114,8 @@ struct MenuBarView: View {
             isStarting: appState.isStarting,
             isAwaitingCamera: appState.isAwaitingCamera,
             isSnoozed: appState.isSnoozed,
-            isCameraStalled: appState.isCameraStalled
+            isCameraStalled: appState.isCameraStalled,
+            isAwaitingPermission: appState.isAwaitingCameraPermission
         )
     }
 

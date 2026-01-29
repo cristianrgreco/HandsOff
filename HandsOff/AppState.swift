@@ -92,6 +92,11 @@ final class AppState: ObservableObject {
         return snoozedUntil > now()
     }
 
+    var isAwaitingCameraPermission: Bool {
+        guard isStarting || isAwaitingCamera else { return false }
+        return cameraAuthorizationStatus() == .notDetermined
+    }
+
     init(dependencies: AppStateDependencies = .live()) {
         self.settings = dependencies.settings
         self.stats = dependencies.stats
