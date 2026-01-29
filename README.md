@@ -8,6 +8,7 @@ https://github.com/user-attachments/assets/1e74f34b-ca11-4589-bf58-7ac76c2fe794
 - Runs in the menu bar and monitors when enabled.
 - Detects face + hands locally using the webcam.
 - Alerts via sound, notification banner, and/or a flashing red screen.
+- Automatically reduces detection frequency on battery/low power to conserve CPU and battery.
 - Shows simple stats for recent touches.
 
 ## Privacy
