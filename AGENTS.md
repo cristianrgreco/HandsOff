@@ -1,13 +1,13 @@
 App code changes:
-- Run `scripts/test.sh`, then `scripts/build_and_run.sh DEBUG|RELEASE`.
-- Skip this for test-only runs or documentation-only changes.
+- Offer to run `scripts/build_and_run.sh DEBUG|RELEASE` so the user can manually verify behavior.
+- Then offer to run `scripts/test.sh`.
+- Skip builds/tests for test-only runs or documentation-only changes.
 - Add or update tests to cover new behaviors.
-- Offer to run `scripts/build_and_run.sh` after app changes.
-- If behavior changes (for example, FPS adjustments), offer to run `scripts/build_and_run.sh` before tests so the user can manually verify.
+- For script usage details, see `README.md`.
 
 Escalation requirements:
 - `scripts/build_and_run.sh` needs sandbox escalation (it runs `killall`).
-- Any git command needs sandbox escalation.
+- Any git write commands needs sandbox escalation.
 
 Project config:
 - Info.plist values are likely generated from `project.yml`, so prefer updating `project.yml` for plist-related changes.
