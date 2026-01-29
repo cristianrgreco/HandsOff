@@ -73,33 +73,39 @@ struct MenuBarView: View {
                     .help("Snooze alerts")
                 }
             }
-            if appState.isMonitoring || appState.isStarting {
-                Button {
-                    appState.toggleMonitoring()
-                } label: {
-                    Text(MenuBarStatus.primaryActionTitle(
-                        isMonitoring: appState.isMonitoring,
-                        isStarting: appState.isStarting,
-                        isAwaitingPermission: appState.isAwaitingPermission
-                    ))
+            if MenuBarStatus.shouldShowPrimaryAction(
+                isMonitoring: appState.isMonitoring,
+                isStarting: appState.isStarting,
+                isAwaitingPermission: appState.isAwaitingCameraPermission
+            ) {
+                if appState.isMonitoring || appState.isStarting {
+                    Button {
+                        appState.toggleMonitoring()
+                    } label: {
+                        Text(MenuBarStatus.primaryActionTitle(
+                            isMonitoring: appState.isMonitoring,
+                            isStarting: appState.isStarting,
+                            isAwaitingPermission: appState.isAwaitingCameraPermission
+                        ))
+                    }
+                    .accessibilityIdentifier("primary-action")
+                    .buttonStyle(.bordered)
+                    .tint(.red)
+                    .help(appState.isMonitoring ? "Stop monitoring" : "Cancel start")
+                } else {
+                    Button {
+                        appState.toggleMonitoring()
+                    } label: {
+                        Text(MenuBarStatus.primaryActionTitle(
+                            isMonitoring: appState.isMonitoring,
+                            isStarting: appState.isStarting
+                        ))
+                    }
+                    .accessibilityIdentifier("primary-action")
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                    .help("Start monitoring")
                 }
-                .accessibilityIdentifier("primary-action")
-                .buttonStyle(.bordered)
-                .tint(.red)
-                .help(appState.isMonitoring ? "Stop monitoring" : "Cancel start")
-            } else {
-                Button {
-                    appState.toggleMonitoring()
-                } label: {
-                    Text(MenuBarStatus.primaryActionTitle(
-                        isMonitoring: appState.isMonitoring,
-                        isStarting: appState.isStarting
-                    ))
-                }
-                .accessibilityIdentifier("primary-action")
-                .buttonStyle(.borderedProminent)
-                .tint(.green)
-                .help("Start monitoring")
             }
 
         }
@@ -123,7 +129,7 @@ struct MenuBarView: View {
             isAwaitingCamera: appState.isAwaitingCamera,
             isSnoozed: appState.isSnoozed,
             isCameraStalled: appState.isCameraStalled,
-            isAwaitingPermission: appState.isAwaitingPermission
+            isAwaitingPermission: appState.isAwaitingCameraPermission
         ) {
         case .red:
             return .red
@@ -142,7 +148,7 @@ struct MenuBarView: View {
             isStarting: appState.isStarting,
             isAwaitingCamera: appState.isAwaitingCamera,
             isSnoozed: appState.isSnoozed,
-            isAwaitingPermission: appState.isAwaitingPermission
+            isAwaitingPermission: appState.isAwaitingCameraPermission
         )
     }
 
@@ -217,7 +223,8 @@ struct MenuBarView: View {
                 isMonitoring: appState.isMonitoring,
                 isStarting: appState.isStarting,
                 isAwaitingCamera: appState.isAwaitingCamera,
-                hasPreviewImage: appState.previewImage != nil
+                hasPreviewImage: appState.previewImage != nil,
+                isAwaitingPermission: appState.isAwaitingCameraPermission
             ) {
                 previewPlaceholder(text: placeholder)
             }

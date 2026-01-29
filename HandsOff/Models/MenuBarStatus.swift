@@ -93,12 +93,27 @@ struct MenuBarStatus {
         return "Start"
     }
 
+    static func shouldShowPrimaryAction(
+        isMonitoring: Bool,
+        isStarting: Bool,
+        isAwaitingPermission: Bool = false
+    ) -> Bool {
+        if isAwaitingPermission {
+            return false
+        }
+        return true
+    }
+
     static func previewPlaceholderText(
         isMonitoring: Bool,
         isStarting: Bool,
         isAwaitingCamera: Bool,
-        hasPreviewImage: Bool
+        hasPreviewImage: Bool,
+        isAwaitingPermission: Bool = false
     ) -> String? {
+        if isAwaitingPermission {
+            return "Waiting for camera permission..."
+        }
         if isMonitoring {
             if hasPreviewImage {
                 return nil
