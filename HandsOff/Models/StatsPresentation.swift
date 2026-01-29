@@ -16,4 +16,26 @@ struct StatsPresentation {
         let end = last.date.addingTimeInterval(range.bucket)
         return first.date...end
     }
+
+    static func xAxisLabel(
+        for date: Date,
+        range: AlertRange,
+        locale: Locale = .current,
+        timeZone: TimeZone = .current
+    ) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.timeZone = timeZone
+
+        switch range {
+        case .hour:
+            formatter.setLocalizedDateFormatFromTemplate("jm")
+        case .day:
+            formatter.setLocalizedDateFormatFromTemplate("EEE jm")
+        case .week:
+            formatter.setLocalizedDateFormatFromTemplate("MMM d")
+        }
+
+        return formatter.string(from: date)
+    }
 }

@@ -58,6 +58,19 @@ struct StatsView: View {
                     )
                     .symbolSize(20)
                 }
+                .chartXAxis {
+                    AxisMarks(values: .automatic(desiredCount: axisLabelCount)) { value in
+                        AxisGridLine()
+                        AxisTick()
+                        if let date = value.as(Date.self) {
+                            AxisValueLabel {
+                                Text(StatsPresentation.xAxisLabel(for: date, range: range))
+                                    .font(.caption2)
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
+                }
                 .chartXScale(domain: domain)
                 .chartYScale(domain: 0...maxCount)
                 .chartYAxis {
@@ -69,6 +82,17 @@ struct StatsView: View {
                 .accessibilityIdentifier("alerts-chart")
             }
             .padding(4)
+        }
+    }
+
+    private var axisLabelCount: Int {
+        switch range {
+        case .hour:
+            return 4
+        case .day:
+            return 6
+        case .week:
+            return 4
         }
     }
 }

@@ -17,3 +17,7 @@ Testing process:
 - When running `scripts/test.sh` via tool calls, set a longer timeout (e.g., 5-10 minutes).
 - Coverage report: `xcrun xccov view --report --json .build/Logs/Test/<latest>.xcresult` (or `--report` for human-readable output).
 - If tests fail, capture the failing xcresult path from the `scripts/test.sh` output and use it for coverage/logs.
+- For targeted runs, use `xcodebuild -project HandsOff.xcodeproj -scheme HandsOffTests -destination 'platform=macOS' -derivedDataPath .build` with:
+  - `-only-testing:HandsOffTests/<TestClass>` or `-only-testing:HandsOffTests/<TestClass>/<testMethod>`
+  - `-only-testing:HandsOffUITests/<UITestClass>/<testMethod>`
+  - `-skip-testing:HandsOffUITests` to exclude UI tests.
