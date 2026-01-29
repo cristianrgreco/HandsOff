@@ -9,6 +9,8 @@ final class AppState: ObservableObject {
     @Published private(set) var isStarting = false
     @Published private(set) var isAwaitingCamera = false
     @Published private(set) var isCameraStalled = false
+    @Published private(set) var powerState: PowerState = .pluggedIn
+    @Published private(set) var currentFrameInterval: CFTimeInterval = 1.0 / 8.0
     @Published var lastError: DetectionStartError?
     @Published var previewHit = false
     @Published var previewFaceZone: CGRect?
@@ -26,6 +28,7 @@ final class AppState: ObservableObject {
     private let stateDefaults: UserDefaults
     private let notificationCenter: NotificationCenter
     private let workspaceNotificationCenter: NotificationCenter
+    private let powerStateMonitor: PowerStateObserving
     private let timerDriver: TimerDriver
     private let now: () -> Date
     private let mediaTime: () -> CFTimeInterval
@@ -61,6 +64,9 @@ final class AppState: ObservableObject {
     private var lastCameraAuthorizationStatus: AVAuthorizationStatus
     private let wakeResumeDelay: TimeInterval = 1.0
     private let wakeGracePeriod: CFTimeInterval = 8.0
+    private let frameIntervalOnAC: CFTimeInterval = 1.0 / 8.0
+    private let frameIntervalOnBattery: CFTimeInterval = 1.0 / 4.0
+    private let frameIntervalLowPower: CFTimeInterval = 1.0 / 2.0
     private static let isTesting = {
         let environment = ProcessInfo.processInfo.environment
         if ProcessInfo.processInfo.arguments.contains("UI_TESTING") { return true }
@@ -97,6 +103,11 @@ final class AppState: ObservableObject {
         return cameraAuthorizationStatus() == .notDetermined
     }
 
+    var currentFPS: Int {
+        let interval = max(0.01, currentFrameInterval)
+        return Int((1.0 / interval).rounded())
+    }
+
     init(dependencies: AppStateDependencies = .live()) {
         self.settings = dependencies.settings
         self.stats = dependencies.stats
@@ -107,6 +118,7 @@ final class AppState: ObservableObject {
         self.stateDefaults = dependencies.userDefaults
         self.notificationCenter = dependencies.notificationCenter
         self.workspaceNotificationCenter = dependencies.workspaceNotificationCenter
+        self.powerStateMonitor = dependencies.powerStateMonitor
         self.timerDriver = dependencies.timerDriver
         self.now = dependencies.now
         self.mediaTime = dependencies.mediaTime
@@ -141,6 +153,14 @@ final class AppState: ObservableObject {
                 self.setAwaitingCamera(false)
             }
         }
+
+        powerStateMonitor.statePublisher
+            .sink { [weak self] state in
+                self?.applyPowerState(state)
+            }
+            .store(in: &cancellables)
+
+        applyPowerState(powerStateMonitor.currentState)
 
         settings.$alertBannerEnabled
             .sink { [weak alertManager] enabled in
@@ -657,6 +677,21 @@ final class AppState: ObservableObject {
         guard !isSnoozed else { return }
         guard settings.alertBannerEnabled else { return }
         alertManager.postBanner()
+    }
+
+    private func applyPowerState(_ state: PowerState) {
+        let interval: CFTimeInterval
+        switch state {
+        case .lowPower:
+            interval = frameIntervalLowPower
+        case .onBattery:
+            interval = frameIntervalOnBattery
+        case .pluggedIn:
+            interval = frameIntervalOnAC
+        }
+        powerState = state
+        currentFrameInterval = interval
+        detectionEngine.setFrameInterval(interval)
     }
 }
 

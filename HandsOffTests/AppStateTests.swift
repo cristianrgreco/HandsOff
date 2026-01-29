@@ -424,6 +424,19 @@ final class AppStateTests: XCTestCase {
         XCTAssertFalse(appState.isCameraStalled)
     }
 
+    func testPowerStateUpdatesFrameInterval() {
+        let powerMonitor = TestPowerStateMonitor(state: .pluggedIn)
+        let harness = makeHarness(powerStateMonitor: powerMonitor)
+
+        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 8.0, accuracy: 0.0001)
+
+        powerMonitor.send(.onBattery)
+        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 4.0, accuracy: 0.0001)
+
+        powerMonitor.send(.lowPower)
+        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 2.0, accuracy: 0.0001)
+    }
+
     func testCameraStallSelectionUpdatesCameraID() {
         let expectation = expectation(description: "camera stall selection")
         var selected: String?
@@ -588,7 +601,8 @@ final class AppStateTests: XCTestCase {
         openCameraSettings: (() -> Void)? = nil,
         terminateApp: (() -> Void)? = nil,
         cameraStallPresenter: CameraStallAlertPresenter? = nil,
-        cameraAuthorizationStatus: (() -> AVAuthorizationStatus)? = nil
+        cameraAuthorizationStatus: (() -> AVAuthorizationStatus)? = nil,
+        powerStateMonitor: TestPowerStateMonitor? = nil
     ) -> Harness {
         let suiteName = "HandsOffTests.AppState.\(UUID().uuidString)"
         let resolvedDefaults: UserDefaults
@@ -618,6 +632,7 @@ final class AppStateTests: XCTestCase {
         let timerDriver = timerDriverCapture.makeDriver()
         let activityToken = NSObject()
         let activityCapture = ActivityCapture()
+        let resolvedPowerStateMonitor = powerStateMonitor ?? TestPowerStateMonitor(state: .pluggedIn)
         let activityController = ActivityController(
             begin: { _ in
                 activityCapture.beginCount += 1
@@ -642,6 +657,7 @@ final class AppStateTests: XCTestCase {
             userDefaults: resolvedDefaults,
             notificationCenter: notificationCenter,
             workspaceNotificationCenter: workspaceNotificationCenter,
+            powerStateMonitor: resolvedPowerStateMonitor,
             timerDriver: timerDriver,
             now: { clock.now },
             mediaTime: { clock.mediaTime },

@@ -204,11 +204,11 @@ final class DetectionEngineTests: XCTestCase {
         wait(for: [observationExpectation], timeout: 0.2)
     }
 
-    func testFrameIntervalVariesWithPreviewState() {
+    func testFrameIntervalIsSameForPreviewAndIdle() {
         let engine = makeEngine()
 
         XCTAssertEqual(engine._testFrameInterval(previewEnabled: true), 1.0 / 8.0, accuracy: 0.0001)
-        XCTAssertEqual(engine._testFrameInterval(previewEnabled: false), 1.0 / 4.0, accuracy: 0.0001)
+        XCTAssertEqual(engine._testFrameInterval(previewEnabled: false), 1.0 / 8.0, accuracy: 0.0001)
     }
 
     func testSessionPresetIsLowForPreviewAndIdle() {
@@ -216,6 +216,14 @@ final class DetectionEngineTests: XCTestCase {
 
         XCTAssertEqual(engine._testSessionPreset(previewEnabled: true), .low)
         XCTAssertEqual(engine._testSessionPreset(previewEnabled: false), .low)
+    }
+
+    func testSetFrameIntervalUpdatesThrottle() {
+        let engine = makeEngine()
+
+        engine.setFrameInterval(1.0 / 2.0)
+
+        XCTAssertEqual(engine._testFrameInterval(previewEnabled: true), 1.0 / 2.0, accuracy: 0.0001)
     }
 
     func testHandleSessionMonitorTickRestartsWhenSessionNotRunning() {

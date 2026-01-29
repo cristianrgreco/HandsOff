@@ -360,8 +360,7 @@ final class DetectionEngine: NSObject {
 
     private let confidenceThreshold: Float = 0.75
     private let hairTopMargin: CGFloat = 0.25
-    private let previewFrameInterval: CFTimeInterval = 1.0 / 8.0
-    private let idleFrameInterval: CFTimeInterval = 1.0 / 4.0
+    private let frameIntervalLock = OSAllocatedUnfairLock(initialState: CFTimeInterval(1.0 / 8.0))
     private let sessionPresetValue: AVCaptureSession.Preset = .low
     private let staleFrameThreshold: CFTimeInterval = 1.0
     private let faceCacheDuration: CFTimeInterval = 2.0
@@ -413,6 +412,11 @@ final class DetectionEngine: NSObject {
         set { lastFrameTimeLock.withLock { $0 = newValue } }
     }
 
+    private var frameIntervalValue: CFTimeInterval {
+        get { frameIntervalLock.withLock { $0 } }
+        set { frameIntervalLock.withLock { $0 = newValue } }
+    }
+
     func setObservationHandler(_ handler: @escaping (DetectionObservation) -> Void) {
         onObservation = handler
     }
@@ -435,6 +439,10 @@ final class DetectionEngine: NSObject {
             guard let self, self.isConfigured else { return }
             self.updateSessionPreset(previewEnabled: enabled)
         }
+    }
+
+    func setFrameInterval(_ interval: CFTimeInterval) {
+        frameIntervalValue = max(0.05, interval)
     }
 
     func start(completion: @escaping (DetectionStartError?) -> Void) {
@@ -685,8 +693,8 @@ final class DetectionEngine: NSObject {
         detect(on: pixelBuffer, now: now)
     }
 
-    private func frameInterval(previewEnabled: Bool) -> CFTimeInterval {
-        previewEnabled ? previewFrameInterval : idleFrameInterval
+    private func frameInterval(previewEnabled _: Bool) -> CFTimeInterval {
+        frameIntervalValue
     }
 
 

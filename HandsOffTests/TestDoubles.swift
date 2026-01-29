@@ -1,3 +1,4 @@
+import Combine
 import CoreGraphics
 import Foundation
 @testable import HandsOff
@@ -68,6 +69,7 @@ final class TestDetectionEngine: DetectionEngineType {
     private(set) var startCount = 0
     private(set) var stopCount = 0
     private(set) var previewEnabledValues: [Bool] = []
+    private(set) var frameIntervalValues: [CFTimeInterval] = []
     private var startCompletion: ((DetectionStartError?) -> Void)?
     private var observationHandler: ((DetectionObservation) -> Void)?
     private var previewHandler: ((CGImage) -> Void)?
@@ -99,6 +101,10 @@ final class TestDetectionEngine: DetectionEngineType {
         previewEnabledValues.append(enabled)
     }
 
+    func setFrameInterval(_ interval: CFTimeInterval) {
+        frameIntervalValues.append(interval)
+    }
+
     func completeStart(with error: DetectionStartError?) {
         startCompletion?(error)
     }
@@ -117,6 +123,26 @@ final class TestDetectionEngine: DetectionEngineType {
 
     func emitTrigger() {
         triggerHandler?()
+    }
+}
+
+final class TestPowerStateMonitor: PowerStateObserving {
+    private let subject: CurrentValueSubject<PowerState, Never>
+
+    init(state: PowerState) {
+        self.subject = CurrentValueSubject(state)
+    }
+
+    var currentState: PowerState {
+        subject.value
+    }
+
+    var statePublisher: AnyPublisher<PowerState, Never> {
+        subject.eraseToAnyPublisher()
+    }
+
+    func send(_ state: PowerState) {
+        subject.send(state)
     }
 }
 

@@ -146,6 +146,46 @@ struct MenuBarView: View {
         )
     }
 
+    private var powerBadge: some View {
+        let color = powerStateColor
+        return HStack(spacing: 4) {
+            Image(systemName: powerStateIconName)
+                .font(.caption2)
+            Text("\(appState.currentFPS) FPS")
+                .font(.caption2)
+                .fontWeight(.semibold)
+        }
+        .foregroundStyle(Color.white)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(color.opacity(0.85))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .accessibilityLabel("\(appState.currentFPS) FPS")
+        .accessibilityIdentifier("fps-badge")
+    }
+
+    private var powerStateIconName: String {
+        switch appState.powerState {
+        case .pluggedIn:
+            return "powercord"
+        case .onBattery:
+            return "battery.100"
+        case .lowPower:
+            return "battery.25"
+        }
+    }
+
+    private var powerStateColor: Color {
+        switch appState.powerState {
+        case .pluggedIn:
+            return .green
+        case .onBattery:
+            return .orange
+        case .lowPower:
+            return .red
+        }
+    }
+
     private var previewSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("Preview")
@@ -154,12 +194,13 @@ struct MenuBarView: View {
                 .foregroundStyle(.secondary)
 
             if appState.isMonitoring, let previewImage = appState.previewImage {
-                PreviewFrameView(
-                    image: previewImage,
-                    faceZone: appState.previewFaceZone,
-                    isHit: appState.previewHit,
-                    handPoints: appState.previewHandPoints
-                )
+                ZStack(alignment: .topTrailing) {
+                    PreviewFrameView(
+                        image: previewImage,
+                        faceZone: appState.previewFaceZone,
+                        isHit: appState.previewHit,
+                        handPoints: appState.previewHandPoints
+                    )
                     .frame(maxWidth: .infinity)
                     .frame(height: 160)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -167,6 +208,10 @@ struct MenuBarView: View {
                         RoundedRectangle(cornerRadius: 10)
                             .stroke(appState.previewHit ? .red : .secondary, lineWidth: 2)
                     )
+
+                    powerBadge
+                        .padding(6)
+                }
             } else if let placeholder = MenuBarStatus.previewPlaceholderText(
                 isMonitoring: appState.isMonitoring,
                 isStarting: appState.isStarting,

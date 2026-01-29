@@ -178,6 +178,26 @@ final class HandsOffUITests: XCTestCase {
         XCTAssertGreaterThan(window.otherElements.matching(identifier: "hand-point").count, 0)
     }
 
+    func testFPSBadgeHiddenWhenNotMonitoring() {
+        let app = launchApp()
+        let window = mainWindow(in: app)
+
+        XCTAssertFalse(window.otherElements["fps-badge"].exists)
+    }
+
+    func testFPSBadgeShowsLowPowerRate() {
+        let app = launchApp(environment: [
+            "UITEST_POWER_STATE": "low",
+            "UITEST_START_ERROR": "none"
+        ])
+        let window = mainWindow(in: app)
+        window.buttons["primary-action"].click()
+
+        let badge = window.otherElements["fps-badge"]
+        XCTAssertTrue(badge.waitForExistence(timeout: 2))
+        XCTAssertEqual(textValue(badge), "2 FPS")
+    }
+
     func testStatsTodayCountIncrementsOnHit() {
         let app = launchApp(environment: ["UITEST_HIT": "1"])
         let window = mainWindow(in: app)

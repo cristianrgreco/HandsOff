@@ -1,6 +1,8 @@
 import AppKit
 import AVFoundation
+import Combine
 import Foundation
+import IOKit.ps
 
 protocol AlertManaging: AnyObject {
     func ensureNotificationAuthorization()
@@ -29,6 +31,7 @@ protocol DetectionEngineType: AnyObject {
     func setPreviewHandler(_ handler: @escaping (CGImage) -> Void)
     func setFrameHandler(_ handler: @escaping () -> Void)
     func setPreviewEnabled(_ enabled: Bool)
+    func setFrameInterval(_ interval: CFTimeInterval)
 }
 
 extension AlertManager: AlertManaging {}
@@ -89,6 +92,7 @@ struct AppStateDependencies {
     var userDefaults: UserDefaults
     var notificationCenter: NotificationCenter
     var workspaceNotificationCenter: NotificationCenter
+    var powerStateMonitor: PowerStateObserving
     var timerDriver: TimerDriver
     var now: () -> Date
     var mediaTime: () -> CFTimeInterval
@@ -119,6 +123,7 @@ struct AppStateDependencies {
             userDefaults: .standard,
             notificationCenter: .default,
             workspaceNotificationCenter: NSWorkspace.shared.notificationCenter,
+            powerStateMonitor: PowerStateMonitor(),
             timerDriver: .live,
             now: Date.init,
             mediaTime: CACurrentMediaTime,
@@ -171,4 +176,139 @@ struct AppStateDependencies {
             }
         )
     }
+}
+
+enum PowerState: Equatable {
+    case pluggedIn
+    case onBattery
+    case lowPower
+}
+
+protocol PowerStateObserving {
+    var currentState: PowerState { get }
+    var statePublisher: AnyPublisher<PowerState, Never> { get }
+}
+
+final class PowerStateMonitor: PowerStateObserving {
+    private let notificationCenter: NotificationCenter
+    private let subject: CurrentValueSubject<PowerState, Never>
+    private var powerSourceRunLoopSource: CFRunLoopSource?
+    private var powerStateObserver: NSObjectProtocol?
+
+    init(notificationCenter: NotificationCenter = .default) {
+        self.notificationCenter = notificationCenter
+        self.subject = CurrentValueSubject(Self.resolveState())
+        start()
+    }
+
+    deinit {
+        stop()
+    }
+
+    var currentState: PowerState {
+        subject.value
+    }
+
+    var statePublisher: AnyPublisher<PowerState, Never> {
+        subject
+            .removeDuplicates()
+            .eraseToAnyPublisher()
+    }
+
+    private func start() {
+        if powerStateObserver == nil {
+            powerStateObserver = notificationCenter.addObserver(
+                forName: .NSProcessInfoPowerStateDidChange,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.updateState()
+            }
+        }
+
+        if powerSourceRunLoopSource == nil {
+            let context = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+            guard let source = IOPSNotificationCreateRunLoopSource(powerSourceCallback, context)?
+                .takeRetainedValue()
+            else {
+                return
+            }
+            powerSourceRunLoopSource = source
+            CFRunLoopAddSource(CFRunLoopGetMain(), source, .defaultMode)
+        }
+
+        updateState()
+    }
+
+    private func stop() {
+        if let powerStateObserver {
+            notificationCenter.removeObserver(powerStateObserver)
+            self.powerStateObserver = nil
+        }
+        if let powerSourceRunLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), powerSourceRunLoopSource, .defaultMode)
+            self.powerSourceRunLoopSource = nil
+        }
+    }
+
+    fileprivate func updateState() {
+        let state = Self.resolveState()
+        if state != subject.value {
+            subject.send(state)
+        }
+    }
+
+    private static func resolveState() -> PowerState {
+        if ProcessInfo.processInfo.isLowPowerModeEnabled {
+            return .lowPower
+        }
+        return isOnBattery() ? .onBattery : .pluggedIn
+    }
+
+    private static func isOnBattery() -> Bool {
+        guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue() else { return false }
+        guard let sources = IOPSCopyPowerSourcesList(info)?.takeRetainedValue() as? [CFTypeRef] else {
+            return false
+        }
+
+        for source in sources {
+            guard let description = IOPSGetPowerSourceDescription(info, source)?
+                .takeUnretainedValue() as? [String: Any],
+                  let powerState = description[kIOPSPowerSourceStateKey] as? String
+            else {
+                continue
+            }
+            if powerState == kIOPSBatteryPowerValue {
+                return true
+            }
+        }
+
+        return false
+    }
+}
+
+final class StaticPowerStateMonitor: PowerStateObserving {
+    private let subject: CurrentValueSubject<PowerState, Never>
+
+    init(state: PowerState) {
+        self.subject = CurrentValueSubject(state)
+    }
+
+    var currentState: PowerState {
+        subject.value
+    }
+
+    var statePublisher: AnyPublisher<PowerState, Never> {
+        subject.eraseToAnyPublisher()
+    }
+
+    func update(_ state: PowerState) {
+        subject.send(state)
+    }
+}
+
+private func powerSourceCallback(context: UnsafeMutableRawPointer?) {
+    guard let context else { return }
+    let monitor = Unmanaged<PowerStateMonitor>.fromOpaque(context).takeUnretainedValue()
+    monitor.updateState()
 }
