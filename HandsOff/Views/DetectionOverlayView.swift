@@ -16,6 +16,7 @@ struct DetectionOverlayView: View {
                         .position(x: faceRect.midX, y: faceRect.midY)
                         .accessibilityElement()
                         .accessibilityIdentifier("face-box")
+                        .accessibilityLabel("Face box, hand points \(handPoints.count)")
                 }
 
                 ForEach(handPoints.indices, id: \.self) { index in

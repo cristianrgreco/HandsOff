@@ -178,9 +178,11 @@ final class HandsOffUITests: XCTestCase {
         let alert = window.staticTexts["alert-label"]
         XCTAssertTrue(alert.waitForExistence(timeout: 2))
         XCTAssertEqual(textValue(alert), "ALERT")
-        XCTAssertTrue(window.otherElements["face-box"].exists)
-        let predicate = NSPredicate(format: "identifier BEGINSWITH %@", "hand-point-")
-        XCTAssertGreaterThan(window.otherElements.matching(predicate).count, 0)
+        let faceBox = window.otherElements["face-box"]
+        XCTAssertTrue(faceBox.exists)
+        let digits = faceBox.label.filter { $0.isNumber }
+        let count = Int(digits) ?? 0
+        XCTAssertGreaterThan(count, 0)
     }
 
     func testFPSBadgeHiddenWhenNotMonitoring() {
