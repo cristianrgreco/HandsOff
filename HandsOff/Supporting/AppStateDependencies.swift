@@ -97,6 +97,7 @@ struct AppStateDependencies {
     var now: () -> Date
     var mediaTime: () -> CFTimeInterval
     var cameraAuthorizationStatus: () -> AVAuthorizationStatus
+    var requestCameraAccess: (@escaping (Bool) -> Void) -> Void
     var openCameraSettings: () -> Void
     var terminateApp: () -> Void
     var activityController: ActivityController
@@ -128,6 +129,11 @@ struct AppStateDependencies {
             now: Date.init,
             mediaTime: CACurrentMediaTime,
             cameraAuthorizationStatus: { AVCaptureDevice.authorizationStatus(for: .video) },
+            requestCameraAccess: { completion in
+                AVCaptureDevice.requestAccess(for: .video) { granted in
+                    completion(granted)
+                }
+            },
             openCameraSettings: {
                 guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") else {
                     return
