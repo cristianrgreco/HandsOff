@@ -33,7 +33,7 @@ struct HandsOffApp: App {
             isStarting: appState.isStarting,
             isAwaitingCamera: appState.isAwaitingCamera,
             isSnoozed: appState.isSnoozed,
-            isAwaitingPermission: appState.isAwaitingPermission
+            isAwaitingPermission: appState.isAwaitingCameraPermission
         )
     }
 

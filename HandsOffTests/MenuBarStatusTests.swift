@@ -158,6 +158,26 @@ final class MenuBarStatusTests: XCTestCase {
         )
     }
 
+    func testShouldShowPrimaryActionHidesWhenAwaitingPermission() {
+        XCTAssertFalse(
+            MenuBarStatus.shouldShowPrimaryAction(
+                isMonitoring: false,
+                isStarting: false,
+                isAwaitingPermission: true
+            )
+        )
+    }
+
+    func testShouldShowPrimaryActionShowsOtherwise() {
+        XCTAssertTrue(
+            MenuBarStatus.shouldShowPrimaryAction(
+                isMonitoring: false,
+                isStarting: false,
+                isAwaitingPermission: false
+            )
+        )
+    }
+
     func testSymbols() {
         XCTAssertEqual(
             MenuBarStatus.menuBarSymbolName(
@@ -221,6 +241,16 @@ final class MenuBarStatusTests: XCTestCase {
                 hasPreviewImage: false
             ),
             "Start monitoring to show the camera feed."
+        )
+        XCTAssertEqual(
+            MenuBarStatus.previewPlaceholderText(
+                isMonitoring: false,
+                isStarting: false,
+                isAwaitingCamera: false,
+                hasPreviewImage: false,
+                isAwaitingPermission: true
+            ),
+            "Waiting for camera permission..."
         )
         XCTAssertEqual(
             MenuBarStatus.previewPlaceholderText(
