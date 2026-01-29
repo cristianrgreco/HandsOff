@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import CoreGraphics
 import XCTest
 @testable import HandsOff
@@ -389,6 +390,40 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(presentedDevices.count, 2)
     }
 
+    func testCameraStallIsSuppressedWhilePermissionIsPending() {
+        let expectation = expectation(description: "camera stall presenter")
+        expectation.isInverted = true
+        let harness = makeHarness(cameraStallPresenter: { _, _, _, _, _ in
+            expectation.fulfill()
+        }, cameraAuthorizationStatus: { .notDetermined })
+        let appState = harness.appState
+
+        appState._testSetAwaitingCamera(true)
+        appState._testEvaluateCameraStall(now: harness.clock.mediaTime + 10)
+
+        wait(for: [expectation], timeout: 0.2)
+        XCTAssertFalse(appState.isCameraStalled)
+    }
+
+    func testCameraStallDoesNotTriggerImmediatelyAfterPermissionGranted() {
+        let expectation = expectation(description: "camera stall presenter")
+        expectation.isInverted = true
+        var status: AVAuthorizationStatus = .notDetermined
+        let harness = makeHarness(cameraStallPresenter: { _, _, _, _, _ in
+            expectation.fulfill()
+        }, cameraAuthorizationStatus: { status })
+        let appState = harness.appState
+
+        appState._testSetAwaitingCamera(true)
+        appState._testEvaluateCameraStall(now: harness.clock.mediaTime + 10)
+
+        status = .authorized
+        appState._testEvaluateCameraStall(now: harness.clock.mediaTime + 20)
+
+        wait(for: [expectation], timeout: 0.2)
+        XCTAssertFalse(appState.isCameraStalled)
+    }
+
     func testCameraStallSelectionUpdatesCameraID() {
         let expectation = expectation(description: "camera stall selection")
         var selected: String?
@@ -552,7 +587,8 @@ final class AppStateTests: XCTestCase {
         defaults: UserDefaults? = nil,
         openCameraSettings: (() -> Void)? = nil,
         terminateApp: (() -> Void)? = nil,
-        cameraStallPresenter: CameraStallAlertPresenter? = nil
+        cameraStallPresenter: CameraStallAlertPresenter? = nil,
+        cameraAuthorizationStatus: (() -> AVAuthorizationStatus)? = nil
     ) -> Harness {
         let suiteName = "HandsOffTests.AppState.\(UUID().uuidString)"
         let resolvedDefaults: UserDefaults
@@ -609,6 +645,7 @@ final class AppStateTests: XCTestCase {
             timerDriver: timerDriver,
             now: { clock.now },
             mediaTime: { clock.mediaTime },
+            cameraAuthorizationStatus: cameraAuthorizationStatus ?? { .authorized },
             openCameraSettings: openCameraSettings ?? {},
             terminateApp: terminateApp ?? {},
             activityController: activityController,

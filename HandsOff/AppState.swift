@@ -29,6 +29,7 @@ final class AppState: ObservableObject {
     private let timerDriver: TimerDriver
     private let now: () -> Date
     private let mediaTime: () -> CFTimeInterval
+    private let cameraAuthorizationStatus: () -> AVAuthorizationStatus
     private let openCameraSettingsHandler: () -> Void
     private let terminateAppHandler: () -> Void
     private let activityController: ActivityController
@@ -57,6 +58,7 @@ final class AppState: ObservableObject {
     private var startRequestID: UUID?
     private var monitoringBeforeSleep = false
     private var lastWakeTime: CFTimeInterval?
+    private var lastCameraAuthorizationStatus: AVAuthorizationStatus
     private let wakeResumeDelay: TimeInterval = 1.0
     private let wakeGracePeriod: CFTimeInterval = 8.0
     private static let isTesting = {
@@ -103,6 +105,8 @@ final class AppState: ObservableObject {
         self.timerDriver = dependencies.timerDriver
         self.now = dependencies.now
         self.mediaTime = dependencies.mediaTime
+        self.cameraAuthorizationStatus = dependencies.cameraAuthorizationStatus
+        self.lastCameraAuthorizationStatus = dependencies.cameraAuthorizationStatus()
         self.openCameraSettingsHandler = dependencies.openCameraSettings
         self.terminateAppHandler = dependencies.terminateApp
         self.activityController = dependencies.activityController
@@ -281,7 +285,7 @@ final class AppState: ObservableObject {
     }
 
     private func requestCameraAccessIfNeeded() {
-        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        let status = cameraAuthorizationStatus()
         guard status == .notDetermined else { return }
         AVCaptureDevice.requestAccess(for: .video) { _ in }
     }
@@ -439,6 +443,17 @@ final class AppState: ObservableObject {
     }
 
     private func evaluateCameraStall(now: CFTimeInterval) {
+        let authorizationStatus = cameraAuthorizationStatus()
+        if authorizationStatus == .notDetermined {
+            lastCameraAuthorizationStatus = authorizationStatus
+            return
+        }
+        if lastCameraAuthorizationStatus == .notDetermined && authorizationStatus == .authorized {
+            awaitingCameraSince = now
+            cameraStallAlertShown = false
+            isCameraStalled = false
+        }
+        lastCameraAuthorizationStatus = authorizationStatus
         if let lastWakeTime, now - lastWakeTime < wakeGracePeriod {
             return
         }

@@ -1,4 +1,5 @@
 #if DEBUG
+import AVFoundation
 import Combine
 import CoreGraphics
 import Foundation
@@ -243,6 +244,7 @@ extension AppStateDependencies {
             timerDriver: .live,
             now: Date.init,
             mediaTime: CACurrentMediaTime,
+            cameraAuthorizationStatus: { .authorized },
             openCameraSettings: {},
             terminateApp: {},
             activityController: ActivityController(begin: { _ in NSObject() }, end: { _ in }),
