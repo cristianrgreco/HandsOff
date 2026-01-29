@@ -40,8 +40,10 @@ final class AppState: ObservableObject {
     private var touchReleaseStart: CFTimeInterval?
     private var snoozeTimer: Timer?
     private var resumeAfterWakeTimer: Timer?
+    private var cameraRestartTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private let touchReleaseDebounce: CFTimeInterval = 0.3
+    private let cameraRestartDebounce: TimeInterval = 0.35
     private var resumeMonitoringWhenCameraAvailable = false
     private var deviceObservers: [NSObjectProtocol] = []
     private var workspaceObservers: [NSObjectProtocol] = []
@@ -225,7 +227,7 @@ final class AppState: ObservableObject {
             .dropFirst()
             .sink { [weak self] _ in
                 guard let self, self.isMonitoring, !self.isStarting else { return }
-                self.restartMonitoring()
+                self.scheduleCameraRestart()
             }
             .store(in: &cancellables)
 
@@ -338,6 +340,8 @@ final class AppState: ObservableObject {
         startRequestID = nil
         isStarting = false
         setAwaitingCamera(false)
+        cameraRestartTimer?.invalidate()
+        cameraRestartTimer = nil
         stopFrameStallMonitor()
         detectionEngine.stop()
         stats.endMonitoring()
@@ -355,6 +359,24 @@ final class AppState: ObservableObject {
     private func restartMonitoring() {
         stopMonitoring()
         startMonitoring()
+    }
+
+    private func scheduleCameraRestart() {
+        cameraRestartTimer?.invalidate()
+        cameraRestartTimer = nil
+        guard isMonitoring && !isStarting else { return }
+        let restartDate = now().addingTimeInterval(cameraRestartDebounce)
+        let timer = timerDriver.makeOneShot(restartDate) { [weak self] in
+            self?.performCameraRestartIfPossible()
+        }
+        timerDriver.schedule(timer)
+        cameraRestartTimer = timer
+    }
+
+    private func performCameraRestartIfPossible() {
+        cameraRestartTimer = nil
+        guard isMonitoring && !isStarting else { return }
+        restartMonitoring()
     }
 
     func setPreviewEnabled(_ enabled: Bool) {

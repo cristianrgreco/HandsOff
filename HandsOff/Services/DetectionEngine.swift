@@ -361,7 +361,7 @@ final class DetectionEngine: NSObject {
     private let confidenceThreshold: Float = 0.75
     private let hairTopMargin: CGFloat = 0.25
     private let previewFrameInterval: CFTimeInterval = 1.0 / 8.0
-    private let idleFrameInterval: CFTimeInterval = 1.0 / 3.0
+    private let idleFrameInterval: CFTimeInterval = 1.0 / 4.0
     private let previewSessionPreset: AVCaptureSession.Preset = .medium
     private let idleSessionPreset: AVCaptureSession.Preset = .low
     private let staleFrameThreshold: CFTimeInterval = 1.0

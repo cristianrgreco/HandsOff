@@ -336,6 +336,30 @@ final class AppStateTests: XCTestCase {
 
         harness.settings.cameraID = "cam2"
 
+        XCTAssertEqual(harness.detectionEngine.startCount, 1)
+        harness.timerDriver.scheduled.last?.fire()
+
+        XCTAssertEqual(harness.detectionEngine.startCount, 2)
+    }
+
+    func testCameraSwitchDebouncesRapidChanges() {
+        let harness = makeHarness(cameraDevices: [
+            CameraDeviceInfo(id: "cam1", name: "Built-in", isExternal: false),
+            CameraDeviceInfo(id: "cam2", name: "External", isExternal: true),
+            CameraDeviceInfo(id: "cam3", name: "Virtual", isExternal: true)
+        ])
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+        XCTAssertEqual(harness.detectionEngine.startCount, 1)
+
+        harness.settings.cameraID = "cam2"
+        harness.settings.cameraID = "cam3"
+
+        XCTAssertEqual(harness.detectionEngine.startCount, 1)
+        harness.timerDriver.scheduled.last?.fire()
+
         XCTAssertEqual(harness.detectionEngine.startCount, 2)
     }
 
