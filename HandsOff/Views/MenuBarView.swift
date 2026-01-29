@@ -167,7 +167,7 @@ struct MenuBarView: View {
     private var powerStateIconName: String {
         switch appState.powerState {
         case .pluggedIn:
-            return "powercord"
+            return "bolt.fill"
         case .onBattery:
             return "battery.100"
         case .lowPower:

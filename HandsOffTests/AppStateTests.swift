@@ -428,10 +428,10 @@ final class AppStateTests: XCTestCase {
         let powerMonitor = TestPowerStateMonitor(state: .pluggedIn)
         let harness = makeHarness(powerStateMonitor: powerMonitor)
 
-        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 8.0, accuracy: 0.0001)
+        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 10.0, accuracy: 0.0001)
 
         powerMonitor.send(.onBattery)
-        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 4.0, accuracy: 0.0001)
+        XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 5.0, accuracy: 0.0001)
 
         powerMonitor.send(.lowPower)
         XCTAssertEqual(harness.detectionEngine.frameIntervalValues.last, 1.0 / 2.0, accuracy: 0.0001)

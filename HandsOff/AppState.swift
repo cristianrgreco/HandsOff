@@ -64,8 +64,8 @@ final class AppState: ObservableObject {
     private var lastCameraAuthorizationStatus: AVAuthorizationStatus
     private let wakeResumeDelay: TimeInterval = 1.0
     private let wakeGracePeriod: CFTimeInterval = 8.0
-    private let frameIntervalOnAC: CFTimeInterval = 1.0 / 8.0
-    private let frameIntervalOnBattery: CFTimeInterval = 1.0 / 4.0
+    private let frameIntervalOnAC: CFTimeInterval = 1.0 / 10.0
+    private let frameIntervalOnBattery: CFTimeInterval = 1.0 / 5.0
     private let frameIntervalLowPower: CFTimeInterval = 1.0 / 2.0
     private static let isTesting = {
         let environment = ProcessInfo.processInfo.environment

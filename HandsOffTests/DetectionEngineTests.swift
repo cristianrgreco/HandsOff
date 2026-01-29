@@ -207,8 +207,8 @@ final class DetectionEngineTests: XCTestCase {
     func testFrameIntervalIsSameForPreviewAndIdle() {
         let engine = makeEngine()
 
-        XCTAssertEqual(engine._testFrameInterval(previewEnabled: true), 1.0 / 8.0, accuracy: 0.0001)
-        XCTAssertEqual(engine._testFrameInterval(previewEnabled: false), 1.0 / 8.0, accuracy: 0.0001)
+        XCTAssertEqual(engine._testFrameInterval(previewEnabled: true), 1.0 / 10.0, accuracy: 0.0001)
+        XCTAssertEqual(engine._testFrameInterval(previewEnabled: false), 1.0 / 10.0, accuracy: 0.0001)
     }
 
     func testSessionPresetIsLowForPreviewAndIdle() {
