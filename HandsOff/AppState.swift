@@ -336,6 +336,11 @@ final class AppState: ObservableObject {
     }
 
     func toggleMonitoring() {
+        if isAwaitingPermission && pendingAutoStartAfterPermission {
+            pendingAutoStartAfterPermission = false
+            isAwaitingPermission = false
+            return
+        }
         if isMonitoring || isStarting {
             stopMonitoring()
         } else {

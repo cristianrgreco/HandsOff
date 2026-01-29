@@ -133,6 +133,31 @@ final class MenuBarStatusTests: XCTestCase {
         )
     }
 
+    func testStatusToneShowsOrangeWhenAwaitingPermission() {
+        XCTAssertEqual(
+            MenuBarStatus.statusTone(
+                isMonitoring: false,
+                isStarting: false,
+                isAwaitingCamera: false,
+                isSnoozed: false,
+                isCameraStalled: false,
+                isAwaitingPermission: true
+            ),
+            .orange
+        )
+    }
+
+    func testPrimaryActionTitleShowsCancelWhenAwaitingPermission() {
+        XCTAssertEqual(
+            MenuBarStatus.primaryActionTitle(
+                isMonitoring: false,
+                isStarting: false,
+                isAwaitingPermission: true
+            ),
+            "Cancel"
+        )
+    }
+
     func testSymbols() {
         XCTAssertEqual(
             MenuBarStatus.menuBarSymbolName(

@@ -79,7 +79,8 @@ struct MenuBarView: View {
                 } label: {
                     Text(MenuBarStatus.primaryActionTitle(
                         isMonitoring: appState.isMonitoring,
-                        isStarting: appState.isStarting
+                        isStarting: appState.isStarting,
+                        isAwaitingPermission: appState.isAwaitingPermission
                     ))
                 }
                 .accessibilityIdentifier("primary-action")
@@ -121,7 +122,8 @@ struct MenuBarView: View {
             isStarting: appState.isStarting,
             isAwaitingCamera: appState.isAwaitingCamera,
             isSnoozed: appState.isSnoozed,
-            isCameraStalled: appState.isCameraStalled
+            isCameraStalled: appState.isCameraStalled,
+            isAwaitingPermission: appState.isAwaitingPermission
         ) {
         case .red:
             return .red
@@ -139,7 +141,8 @@ struct MenuBarView: View {
             isMonitoring: appState.isMonitoring,
             isStarting: appState.isStarting,
             isAwaitingCamera: appState.isAwaitingCamera,
-            isSnoozed: appState.isSnoozed
+            isSnoozed: appState.isSnoozed,
+            isAwaitingPermission: appState.isAwaitingPermission
         )
     }
 
