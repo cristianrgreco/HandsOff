@@ -119,6 +119,20 @@ final class MenuBarStatusTests: XCTestCase {
         )
     }
 
+    func testStatusTextShowsPermissionPromptWhenAwaitingPermission() {
+        XCTAssertEqual(
+            MenuBarStatus.statusText(
+                isMonitoring: false,
+                isStarting: true,
+                isAwaitingCamera: true,
+                isSnoozed: false,
+                isCameraStalled: false,
+                isAwaitingPermission: true
+            ),
+            "Waiting for camera permission..."
+        )
+    }
+
     func testSymbols() {
         XCTAssertEqual(
             MenuBarStatus.menuBarSymbolName(
@@ -142,15 +156,26 @@ final class MenuBarStatusTests: XCTestCase {
             MenuBarStatus.headerSymbolName(
                 isMonitoring: true,
                 isStarting: false,
-                isAwaitingCamera: false
+                isAwaitingCamera: false,
+                isSnoozed: false
             ),
             "hand.raised.fill"
         )
         XCTAssertEqual(
             MenuBarStatus.headerSymbolName(
+                isMonitoring: true,
+                isStarting: false,
+                isAwaitingCamera: false,
+                isSnoozed: true
+            ),
+            "hand.raised.slash.fill"
+        )
+        XCTAssertEqual(
+            MenuBarStatus.headerSymbolName(
                 isMonitoring: false,
                 isStarting: true,
-                isAwaitingCamera: false
+                isAwaitingCamera: false,
+                isSnoozed: false
             ),
             "hand.raised"
         )

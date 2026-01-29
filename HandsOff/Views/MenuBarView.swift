@@ -54,7 +54,6 @@ struct MenuBarView: View {
                         appState.resumeFromSnooze()
                     }
                     .buttonStyle(.bordered)
-                    .controlSize(.small)
                     .help("Resume alerts")
                 } else {
                     Menu {
@@ -71,7 +70,6 @@ struct MenuBarView: View {
                         Text("Snooze")
                     }
                     .menuStyle(.borderedButton)
-                    .controlSize(.small)
                     .help("Snooze alerts")
                 }
             }
@@ -87,7 +85,6 @@ struct MenuBarView: View {
                 .accessibilityIdentifier("primary-action")
                 .buttonStyle(.bordered)
                 .tint(.red)
-                .controlSize(.small)
                 .help(appState.isMonitoring ? "Stop monitoring" : "Cancel start")
             } else {
                 Button {
@@ -101,7 +98,6 @@ struct MenuBarView: View {
                 .accessibilityIdentifier("primary-action")
                 .buttonStyle(.borderedProminent)
                 .tint(.green)
-                .controlSize(.small)
                 .help("Start monitoring")
             }
 
@@ -114,7 +110,8 @@ struct MenuBarView: View {
             isStarting: appState.isStarting,
             isAwaitingCamera: appState.isAwaitingCamera,
             isSnoozed: appState.isSnoozed,
-            isCameraStalled: appState.isCameraStalled
+            isCameraStalled: appState.isCameraStalled,
+            isAwaitingPermission: appState.isAwaitingCameraPermission
         )
     }
 
@@ -141,8 +138,50 @@ struct MenuBarView: View {
         MenuBarStatus.headerSymbolName(
             isMonitoring: appState.isMonitoring,
             isStarting: appState.isStarting,
-            isAwaitingCamera: appState.isAwaitingCamera
+            isAwaitingCamera: appState.isAwaitingCamera,
+            isSnoozed: appState.isSnoozed
         )
+    }
+
+    private var powerBadge: some View {
+        let color = powerStateColor
+        return HStack(spacing: 4) {
+            Image(systemName: powerStateIconName)
+                .font(.caption2)
+            Text("\(appState.currentFPS) FPS")
+                .font(.caption2)
+                .fontWeight(.semibold)
+        }
+        .foregroundStyle(Color.white)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(color.opacity(0.85))
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(appState.currentFPS) FPS")
+        .accessibilityIdentifier("fps-badge")
+    }
+
+    private var powerStateIconName: String {
+        switch appState.powerState {
+        case .pluggedIn:
+            return "bolt.fill"
+        case .onBattery:
+            return "battery.100"
+        case .lowPower:
+            return "battery.25"
+        }
+    }
+
+    private var powerStateColor: Color {
+        switch appState.powerState {
+        case .pluggedIn:
+            return .green
+        case .onBattery:
+            return .orange
+        case .lowPower:
+            return .red
+        }
     }
 
     private var previewSection: some View {
@@ -153,12 +192,13 @@ struct MenuBarView: View {
                 .foregroundStyle(.secondary)
 
             if appState.isMonitoring, let previewImage = appState.previewImage {
-                PreviewFrameView(
-                    image: previewImage,
-                    faceZone: appState.previewFaceZone,
-                    isHit: appState.previewHit,
-                    handPoints: appState.previewHandPoints
-                )
+                ZStack(alignment: .topTrailing) {
+                    PreviewFrameView(
+                        image: previewImage,
+                        faceZone: appState.previewFaceZone,
+                        isHit: appState.previewHit,
+                        handPoints: appState.previewHandPoints
+                    )
                     .frame(maxWidth: .infinity)
                     .frame(height: 160)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -166,6 +206,10 @@ struct MenuBarView: View {
                         RoundedRectangle(cornerRadius: 10)
                             .stroke(appState.previewHit ? .red : .secondary, lineWidth: 2)
                     )
+
+                    powerBadge
+                        .padding(6)
+                }
             } else if let placeholder = MenuBarStatus.previewPlaceholderText(
                 isMonitoring: appState.isMonitoring,
                 isStarting: appState.isStarting,
@@ -238,7 +282,6 @@ struct MenuBarView: View {
                 appState.terminateApp()
             }
             .buttonStyle(.bordered)
-            .controlSize(.small)
             .help("Quit Hands Off")
         }
         .padding(.top, 2)

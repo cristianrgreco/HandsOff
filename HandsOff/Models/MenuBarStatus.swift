@@ -13,10 +13,14 @@ struct MenuBarStatus {
         isStarting: Bool,
         isAwaitingCamera: Bool,
         isSnoozed: Bool,
-        isCameraStalled: Bool
+        isCameraStalled: Bool,
+        isAwaitingPermission: Bool = false
     ) -> String {
         if isCameraStalled {
             return "Camera not responding"
+        }
+        if isAwaitingPermission {
+            return "Waiting for camera permission..."
         }
         if isStarting || isAwaitingCamera {
             return "Starting..."
@@ -49,13 +53,14 @@ struct MenuBarStatus {
     static func headerSymbolName(
         isMonitoring: Bool,
         isStarting: Bool,
-        isAwaitingCamera: Bool
+        isAwaitingCamera: Bool,
+        isSnoozed: Bool
     ) -> String {
         if isStarting || isAwaitingCamera {
             return "hand.raised"
         }
         if isMonitoring {
-            return "hand.raised.fill"
+            return isSnoozed ? "hand.raised.slash.fill" : "hand.raised.fill"
         }
         return "hand.raised.slash"
     }

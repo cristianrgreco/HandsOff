@@ -1,3 +1,5 @@
+import AppKit
+import AVFoundation
 import CoreGraphics
 import XCTest
 @testable import HandsOff
@@ -335,6 +337,30 @@ final class AppStateTests: XCTestCase {
 
         harness.settings.cameraID = "cam2"
 
+        XCTAssertEqual(harness.detectionEngine.startCount, 1)
+        harness.timerDriver.scheduled.last?.fire()
+
+        XCTAssertEqual(harness.detectionEngine.startCount, 2)
+    }
+
+    func testCameraSwitchDebouncesRapidChanges() {
+        let harness = makeHarness(cameraDevices: [
+            CameraDeviceInfo(id: "cam1", name: "Built-in", isExternal: false),
+            CameraDeviceInfo(id: "cam2", name: "External", isExternal: true),
+            CameraDeviceInfo(id: "cam3", name: "Virtual", isExternal: true)
+        ])
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+        XCTAssertEqual(harness.detectionEngine.startCount, 1)
+
+        harness.settings.cameraID = "cam2"
+        harness.settings.cameraID = "cam3"
+
+        XCTAssertEqual(harness.detectionEngine.startCount, 1)
+        harness.timerDriver.scheduled.last?.fire()
+
         XCTAssertEqual(harness.detectionEngine.startCount, 2)
     }
 
@@ -362,6 +388,65 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(presenterCalls, 1)
         XCTAssertEqual(harness.detectionEngine.startCount, 1)
         XCTAssertEqual(presentedDevices.count, 2)
+    }
+
+    func testCameraStallIsSuppressedWhilePermissionIsPending() {
+        let expectation = expectation(description: "camera stall presenter")
+        expectation.isInverted = true
+        let harness = makeHarness(cameraStallPresenter: { _, _, _, _, _ in
+            expectation.fulfill()
+        }, cameraAuthorizationStatus: { .notDetermined })
+        let appState = harness.appState
+
+        appState._testSetAwaitingCamera(true)
+        appState._testEvaluateCameraStall(now: harness.clock.mediaTime + 10)
+
+        wait(for: [expectation], timeout: 0.2)
+        XCTAssertFalse(appState.isCameraStalled)
+    }
+
+    func testCameraStallDoesNotTriggerImmediatelyAfterPermissionGranted() {
+        let expectation = expectation(description: "camera stall presenter")
+        expectation.isInverted = true
+        var status: AVAuthorizationStatus = .notDetermined
+        let harness = makeHarness(cameraStallPresenter: { _, _, _, _, _ in
+            expectation.fulfill()
+        }, cameraAuthorizationStatus: { status })
+        let appState = harness.appState
+
+        appState._testSetAwaitingCamera(true)
+        appState._testEvaluateCameraStall(now: harness.clock.mediaTime + 10)
+
+        status = .authorized
+        appState._testEvaluateCameraStall(now: harness.clock.mediaTime + 20)
+
+        wait(for: [expectation], timeout: 0.2)
+        XCTAssertFalse(appState.isCameraStalled)
+    }
+
+    func testPowerStateUpdatesFrameInterval() {
+        let powerMonitor = TestPowerStateMonitor(state: .pluggedIn)
+        let harness = makeHarness(powerStateMonitor: powerMonitor)
+
+        guard let initialInterval = harness.detectionEngine.frameIntervalValues.last else {
+            XCTFail("Missing initial frame interval")
+            return
+        }
+        XCTAssertEqual(initialInterval, 1.0 / 10.0, accuracy: 0.0001)
+
+        powerMonitor.send(.onBattery)
+        guard let batteryInterval = harness.detectionEngine.frameIntervalValues.last else {
+            XCTFail("Missing battery frame interval")
+            return
+        }
+        XCTAssertEqual(batteryInterval, 1.0 / 5.0, accuracy: 0.0001)
+
+        powerMonitor.send(.lowPower)
+        guard let lowPowerInterval = harness.detectionEngine.frameIntervalValues.last else {
+            XCTFail("Missing low power frame interval")
+            return
+        }
+        XCTAssertEqual(lowPowerInterval, 1.0 / 2.0, accuracy: 0.0001)
     }
 
     func testCameraStallSelectionUpdatesCameraID() {
@@ -447,6 +532,52 @@ final class AppStateTests: XCTestCase {
         XCTAssertNil(defaults.object(forKey: "settings.resumeMonitoringOnLaunch"))
     }
 
+    func testWillSleepStopsMonitoringAndMarksResume() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.willSleepNotification, object: nil)
+
+        XCTAssertFalse(appState.isMonitoring)
+        XCTAssertEqual(harness.detectionEngine.stopCount, 1)
+        XCTAssertTrue(harness.defaults.bool(forKey: "state.resumeMonitoringOnLaunch"))
+    }
+
+    func testDidWakeResumesMonitoringAfterDelay() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.willSleepNotification, object: nil)
+
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+
+        XCTAssertEqual(harness.timerDriver.makeOneShotCount, 1)
+        harness.timerDriver.scheduled.last?.fire()
+        XCTAssertEqual(harness.detectionEngine.startCount, 2)
+    }
+
+    func testWakeGracePeriodSuppressesCameraStallAlert() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        harness.clock.mediaTime = 100
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
+        appState._testSetAwaitingCamera(true)
+
+        appState._testEvaluateCameraStall(now: 107)
+
+        XCTAssertFalse(appState.isCameraStalled)
+
+        appState._testEvaluateCameraStall(now: 120)
+
+        XCTAssertTrue(appState.isCameraStalled)
+    }
+
     private struct Harness {
         let appState: AppState
         let settings: SettingsStore
@@ -457,6 +588,7 @@ final class AppStateTests: XCTestCase {
         let loginItemManager: TestLoginItemManager
         let detectionEngine: TestDetectionEngine
         let clock: TestClockRef
+        let workspaceNotificationCenter: NotificationCenter
         let defaults: UserDefaults
         let timerDriver: TestTimerDriver
         let activityCapture: ActivityCapture
@@ -480,7 +612,9 @@ final class AppStateTests: XCTestCase {
         defaults: UserDefaults? = nil,
         openCameraSettings: (() -> Void)? = nil,
         terminateApp: (() -> Void)? = nil,
-        cameraStallPresenter: CameraStallAlertPresenter? = nil
+        cameraStallPresenter: CameraStallAlertPresenter? = nil,
+        cameraAuthorizationStatus: (() -> AVAuthorizationStatus)? = nil,
+        powerStateMonitor: TestPowerStateMonitor? = nil
     ) -> Harness {
         let suiteName = "HandsOffTests.AppState.\(UUID().uuidString)"
         let resolvedDefaults: UserDefaults
@@ -505,10 +639,12 @@ final class AppStateTests: XCTestCase {
         let detectionEngine = TestDetectionEngine()
         let clock = TestClockRef(now: Date(timeIntervalSince1970: 1_700_000_000), mediaTime: 0)
         let notificationCenter = NotificationCenter()
+        let workspaceNotificationCenter = NotificationCenter()
         let timerDriverCapture = TestTimerDriver()
         let timerDriver = timerDriverCapture.makeDriver()
         let activityToken = NSObject()
         let activityCapture = ActivityCapture()
+        let resolvedPowerStateMonitor = powerStateMonitor ?? TestPowerStateMonitor(state: .pluggedIn)
         let activityController = ActivityController(
             begin: { _ in
                 activityCapture.beginCount += 1
@@ -532,9 +668,12 @@ final class AppStateTests: XCTestCase {
             },
             userDefaults: resolvedDefaults,
             notificationCenter: notificationCenter,
+            workspaceNotificationCenter: workspaceNotificationCenter,
+            powerStateMonitor: resolvedPowerStateMonitor,
             timerDriver: timerDriver,
             now: { clock.now },
             mediaTime: { clock.mediaTime },
+            cameraAuthorizationStatus: cameraAuthorizationStatus ?? { .authorized },
             openCameraSettings: openCameraSettings ?? {},
             terminateApp: terminateApp ?? {},
             activityController: activityController,
@@ -553,6 +692,7 @@ final class AppStateTests: XCTestCase {
             loginItemManager: loginItemManager,
             detectionEngine: detectionEngine,
             clock: clock,
+            workspaceNotificationCenter: workspaceNotificationCenter,
             defaults: resolvedDefaults,
             timerDriver: timerDriverCapture,
             activityCapture: activityCapture

@@ -1,4 +1,5 @@
 #if DEBUG
+import AVFoundation
 import Combine
 import CoreGraphics
 import Foundation
@@ -18,6 +19,7 @@ struct UITestConfig {
     let emitHit: Bool
     let startDelay: TimeInterval
     let devices: [CameraDeviceInfo]
+    let powerState: PowerState
 
     static func fromEnvironment(_ environment: [String: String]) -> UITestConfig {
         let errorValue = StartError(rawValue: environment["UITEST_START_ERROR"] ?? "none") ?? .none
@@ -37,6 +39,16 @@ struct UITestConfig {
         let emitFrame = environment["UITEST_EMIT_FRAME"] != "0"
         let emitHit = environment["UITEST_HIT"] == "1"
         let startDelay = TimeInterval(environment["UITEST_START_DELAY"] ?? "") ?? 0
+        let powerStateSetting = (environment["UITEST_POWER_STATE"] ?? "ac").lowercased()
+        let powerState: PowerState
+        switch powerStateSetting {
+        case "battery":
+            powerState = .onBattery
+        case "low", "low_power", "lowpower":
+            powerState = .lowPower
+        default:
+            powerState = .pluggedIn
+        }
 
         let devicesSetting = environment["UITEST_CAMERA_DEVICES"] ?? "default"
         let devices: [CameraDeviceInfo]
@@ -55,7 +67,8 @@ struct UITestConfig {
             emitFrame: emitFrame,
             emitHit: emitHit,
             startDelay: startDelay,
-            devices: devices
+            devices: devices,
+            powerState: powerState
         )
     }
 }
@@ -129,6 +142,10 @@ final class UITestDetectionEngine: DetectionEngineType {
     func setPreviewEnabled(_ enabled: Bool) {
         previewEnabled = enabled
         emitPreviewIfNeeded()
+    }
+
+    func setFrameInterval(_ interval: CFTimeInterval) {
+        // No-op for UI tests.
     }
 
     private func emitPreviewIfNeeded() {
@@ -239,9 +256,12 @@ extension AppStateDependencies {
             },
             userDefaults: defaults,
             notificationCenter: .default,
+            workspaceNotificationCenter: .default,
+            powerStateMonitor: StaticPowerStateMonitor(state: config.powerState),
             timerDriver: .live,
             now: Date.init,
             mediaTime: CACurrentMediaTime,
+            cameraAuthorizationStatus: { .authorized },
             openCameraSettings: {},
             terminateApp: {},
             activityController: ActivityController(begin: { _ in NSObject() }, end: { _ in }),

@@ -12,7 +12,6 @@ targets:
       path: HandsOff/Supporting/Info.plist
       properties:
         NSCameraUsageDescription: HandsOff uses the camera to detect when your hand approaches your face.
-        NSAppSleepDisabled: true
         LSUIElement: true
     entitlements:
       path: HandsOff/Supporting/HandsOff.entitlements

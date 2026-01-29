@@ -16,6 +16,10 @@ final class HandsOffUITests: XCTestCase {
         return window
     }
 
+    private func element(_ identifier: String, in window: XCUIElement) -> XCUIElement {
+        window.descendants(matching: .any)[identifier]
+    }
+
     private func textValue(_ element: XCUIElement) -> String {
         if !element.label.isEmpty {
             return element.label
@@ -174,8 +178,31 @@ final class HandsOffUITests: XCTestCase {
         let alert = window.staticTexts["alert-label"]
         XCTAssertTrue(alert.waitForExistence(timeout: 2))
         XCTAssertEqual(textValue(alert), "ALERT")
-        XCTAssertTrue(window.otherElements["face-box"].exists)
-        XCTAssertGreaterThan(window.otherElements.matching(identifier: "hand-point").count, 0)
+        let faceBox = window.otherElements["face-box"]
+        XCTAssertTrue(faceBox.exists)
+        let digits = faceBox.label.filter { $0.isNumber }
+        let count = Int(digits) ?? 0
+        XCTAssertGreaterThan(count, 0)
+    }
+
+    func testFPSBadgeHiddenWhenNotMonitoring() {
+        let app = launchApp()
+        let window = mainWindow(in: app)
+
+        XCTAssertFalse(element("fps-badge", in: window).exists)
+    }
+
+    func testFPSBadgeShowsLowPowerRate() {
+        let app = launchApp(environment: [
+            "UITEST_POWER_STATE": "low",
+            "UITEST_START_ERROR": "none"
+        ])
+        let window = mainWindow(in: app)
+        window.buttons["primary-action"].click()
+
+        let badge = element("fps-badge", in: window)
+        XCTAssertTrue(badge.waitForExistence(timeout: 2))
+        XCTAssertEqual(textValue(badge), "2 FPS")
     }
 
     func testStatsTodayCountIncrementsOnHit() {

@@ -36,11 +36,12 @@ struct StatsView: View {
                 Button {
                     stats.resetAll()
                 } label: {
-                    Image(systemName: "arrow.counterclockwise")
+                    Image(systemName: "trash")
                         .accessibilityLabel("Reset stats")
                 }
                 .accessibilityIdentifier("reset-stats")
                 .buttonStyle(.bordered)
+                .tint(.red)
                 .help("Reset stats")
             }
 
@@ -48,6 +49,7 @@ struct StatsView: View {
                 let buckets = stats.alertBuckets(for: range, now: context.date)
                 let points = StatsPresentation.points(from: buckets)
                 let maxCount = StatsPresentation.maxCount(from: buckets)
+                let domain = StatsPresentation.chartDomain(for: buckets, range: range, now: context.date)
 
                 Chart(points) { bucket in
                     PointMark(
@@ -56,6 +58,20 @@ struct StatsView: View {
                     )
                     .symbolSize(20)
                 }
+                .chartXAxis {
+                    AxisMarks(values: .automatic(desiredCount: axisLabelCount)) { value in
+                        AxisGridLine()
+                        AxisTick()
+                        if let date = value.as(Date.self) {
+                            AxisValueLabel {
+                                Text(StatsPresentation.xAxisLabel(for: date, range: range))
+                                    .font(.caption2)
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
+                }
+                .chartXScale(domain: domain)
                 .chartYScale(domain: 0...maxCount)
                 .chartYAxis {
                     AxisMarks(position: .leading)
@@ -66,6 +82,17 @@ struct StatsView: View {
                 .accessibilityIdentifier("alerts-chart")
             }
             .padding(4)
+        }
+    }
+
+    private var axisLabelCount: Int {
+        switch range {
+        case .hour:
+            return 4
+        case .day:
+            return 6
+        case .week:
+            return 4
         }
     }
 }

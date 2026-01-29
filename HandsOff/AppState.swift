@@ -9,6 +9,8 @@ final class AppState: ObservableObject {
     @Published private(set) var isStarting = false
     @Published private(set) var isAwaitingCamera = false
     @Published private(set) var isCameraStalled = false
+    @Published private(set) var powerState: PowerState = .pluggedIn
+    @Published private(set) var currentFrameInterval: CFTimeInterval = 1.0 / 8.0
     @Published var lastError: DetectionStartError?
     @Published var previewHit = false
     @Published var previewFaceZone: CGRect?
@@ -25,9 +27,12 @@ final class AppState: ObservableObject {
     private let loginItemManager: LoginItemManaging
     private let stateDefaults: UserDefaults
     private let notificationCenter: NotificationCenter
+    private let workspaceNotificationCenter: NotificationCenter
+    private let powerStateMonitor: PowerStateObserving
     private let timerDriver: TimerDriver
     private let now: () -> Date
     private let mediaTime: () -> CFTimeInterval
+    private let cameraAuthorizationStatus: () -> AVAuthorizationStatus
     private let openCameraSettingsHandler: () -> Void
     private let terminateAppHandler: () -> Void
     private let activityController: ActivityController
@@ -38,10 +43,14 @@ final class AppState: ObservableObject {
     private var isTouching = false
     private var touchReleaseStart: CFTimeInterval?
     private var snoozeTimer: Timer?
+    private var resumeAfterWakeTimer: Timer?
+    private var cameraRestartTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private let touchReleaseDebounce: CFTimeInterval = 0.3
+    private let cameraRestartDebounce: TimeInterval = 0.35
     private var resumeMonitoringWhenCameraAvailable = false
     private var deviceObservers: [NSObjectProtocol] = []
+    private var workspaceObservers: [NSObjectProtocol] = []
     private var frameStallTimer: Timer?
     private var lastFrameTime: CFTimeInterval = 0
     private let frameStallThreshold: CFTimeInterval = 1.2
@@ -49,6 +58,15 @@ final class AppState: ObservableObject {
     private let cameraStartTimeout: CFTimeInterval = 6.0
     private var cameraStallAlertShown = false
     private var isSoundPlaying = false
+    private var startRequestID: UUID?
+    private var monitoringBeforeSleep = false
+    private var lastWakeTime: CFTimeInterval?
+    private var lastCameraAuthorizationStatus: AVAuthorizationStatus
+    private let wakeResumeDelay: TimeInterval = 1.0
+    private let wakeGracePeriod: CFTimeInterval = 8.0
+    private let frameIntervalOnAC: CFTimeInterval = 1.0 / 10.0
+    private let frameIntervalOnBattery: CFTimeInterval = 1.0 / 5.0
+    private let frameIntervalLowPower: CFTimeInterval = 1.0 / 2.0
     private static let isTesting = {
         let environment = ProcessInfo.processInfo.environment
         if ProcessInfo.processInfo.arguments.contains("UI_TESTING") { return true }
@@ -80,6 +98,16 @@ final class AppState: ObservableObject {
         return snoozedUntil > now()
     }
 
+    var isAwaitingCameraPermission: Bool {
+        guard isStarting || isAwaitingCamera else { return false }
+        return cameraAuthorizationStatus() == .notDetermined
+    }
+
+    var currentFPS: Int {
+        let interval = max(0.01, currentFrameInterval)
+        return Int((1.0 / interval).rounded())
+    }
+
     init(dependencies: AppStateDependencies = .live()) {
         self.settings = dependencies.settings
         self.stats = dependencies.stats
@@ -89,9 +117,13 @@ final class AppState: ObservableObject {
         self.loginItemManager = dependencies.loginItemManager
         self.stateDefaults = dependencies.userDefaults
         self.notificationCenter = dependencies.notificationCenter
+        self.workspaceNotificationCenter = dependencies.workspaceNotificationCenter
+        self.powerStateMonitor = dependencies.powerStateMonitor
         self.timerDriver = dependencies.timerDriver
         self.now = dependencies.now
         self.mediaTime = dependencies.mediaTime
+        self.cameraAuthorizationStatus = dependencies.cameraAuthorizationStatus
+        self.lastCameraAuthorizationStatus = dependencies.cameraAuthorizationStatus()
         self.openCameraSettingsHandler = dependencies.openCameraSettings
         self.terminateAppHandler = dependencies.terminateApp
         self.activityController = dependencies.activityController
@@ -121,6 +153,14 @@ final class AppState: ObservableObject {
                 self.setAwaitingCamera(false)
             }
         }
+
+        powerStateMonitor.statePublisher
+            .sink { [weak self] state in
+                self?.applyPowerState(state)
+            }
+            .store(in: &cancellables)
+
+        applyPowerState(powerStateMonitor.currentState)
 
         settings.$alertBannerEnabled
             .sink { [weak alertManager] enabled in
@@ -193,11 +233,30 @@ final class AppState: ObservableObject {
             }
             .store(in: &cancellables)
 
+        workspaceObservers.append(
+            workspaceNotificationCenter.addObserver(
+                forName: NSWorkspace.willSleepNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.handleWillSleep()
+            }
+        )
+        workspaceObservers.append(
+            workspaceNotificationCenter.addObserver(
+                forName: NSWorkspace.didWakeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.handleDidWake()
+            }
+        )
+
         settings.$cameraID
             .dropFirst()
             .sink { [weak self] _ in
                 guard let self, self.isMonitoring, !self.isStarting else { return }
-                self.restartMonitoring()
+                self.scheduleCameraRestart()
             }
             .store(in: &cancellables)
 
@@ -219,6 +278,7 @@ final class AppState: ObservableObject {
 
     deinit {
         deviceObservers.forEach { notificationCenter.removeObserver($0) }
+        workspaceObservers.forEach { workspaceNotificationCenter.removeObserver($0) }
     }
 
     private func syncCameraSelection() {
@@ -250,7 +310,7 @@ final class AppState: ObservableObject {
     }
 
     private func requestCameraAccessIfNeeded() {
-        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        let status = cameraAuthorizationStatus()
         guard status == .notDetermined else { return }
         AVCaptureDevice.requestAccess(for: .video) { _ in }
     }
@@ -265,6 +325,8 @@ final class AppState: ObservableObject {
 
     func startMonitoring() {
         guard !isMonitoring, !isStarting else { return }
+        let requestID = UUID()
+        startRequestID = requestID
         cameraStore.refresh()
         let availableDevices = cameraStore.devices
         if settings.cameraID == nil || availableDevices.contains(where: { $0.id == settings.cameraID }) == false {
@@ -281,6 +343,8 @@ final class AppState: ObservableObject {
         startFrameStallMonitor()
         detectionEngine.start { [weak self] error in
             guard let self else { return }
+            guard self.startRequestID == requestID, self.isStarting else { return }
+            self.startRequestID = nil
             self.isStarting = false
             if let error {
                 self.isMonitoring = false
@@ -302,8 +366,11 @@ final class AppState: ObservableObject {
     }
 
     func stopMonitoring() {
+        startRequestID = nil
         isStarting = false
         setAwaitingCamera(false)
+        cameraRestartTimer?.invalidate()
+        cameraRestartTimer = nil
         stopFrameStallMonitor()
         detectionEngine.stop()
         stats.endMonitoring()
@@ -321,6 +388,24 @@ final class AppState: ObservableObject {
     private func restartMonitoring() {
         stopMonitoring()
         startMonitoring()
+    }
+
+    private func scheduleCameraRestart() {
+        cameraRestartTimer?.invalidate()
+        cameraRestartTimer = nil
+        guard isMonitoring && !isStarting else { return }
+        let restartDate = now().addingTimeInterval(cameraRestartDebounce)
+        let timer = timerDriver.makeOneShot(restartDate) { [weak self] in
+            self?.performCameraRestartIfPossible()
+        }
+        timerDriver.schedule(timer)
+        cameraRestartTimer = timer
+    }
+
+    private func performCameraRestartIfPossible() {
+        cameraRestartTimer = nil
+        guard isMonitoring && !isStarting else { return }
+        restartMonitoring()
     }
 
     func setPreviewEnabled(_ enabled: Bool) {
@@ -383,12 +468,48 @@ final class AppState: ObservableObject {
     }
 
     private func evaluateCameraStall(now: CFTimeInterval) {
+        let authorizationStatus = cameraAuthorizationStatus()
+        if authorizationStatus == .notDetermined {
+            lastCameraAuthorizationStatus = authorizationStatus
+            return
+        }
+        if lastCameraAuthorizationStatus == .notDetermined && authorizationStatus == .authorized {
+            awaitingCameraSince = now
+            cameraStallAlertShown = false
+            isCameraStalled = false
+        }
+        lastCameraAuthorizationStatus = authorizationStatus
+        if let lastWakeTime, now - lastWakeTime < wakeGracePeriod {
+            return
+        }
         guard !cameraStallAlertShown else { return }
         guard let awaitingCameraSince else { return }
         guard now - awaitingCameraSince >= cameraStartTimeout else { return }
         cameraStallAlertShown = true
         isCameraStalled = true
         presentCameraStallAlert()
+    }
+
+    private func handleWillSleep() {
+        let wasActive = isMonitoring || isStarting
+        monitoringBeforeSleep = wasActive
+        resumeAfterWakeTimer?.invalidate()
+        resumeAfterWakeTimer = nil
+        guard wasActive else { return }
+        stopMonitoring()
+        stateDefaults.set(true, forKey: Self.resumeMonitoringKey)
+    }
+
+    private func handleDidWake() {
+        lastWakeTime = mediaTime()
+        guard monitoringBeforeSleep else { return }
+        monitoringBeforeSleep = false
+        let resumeDate = now().addingTimeInterval(wakeResumeDelay)
+        let timer = timerDriver.makeOneShot(resumeDate) { [weak self] in
+            self?.startMonitoring()
+        }
+        timerDriver.schedule(timer)
+        resumeAfterWakeTimer = timer
     }
 
     private func presentCameraStallAlert() {
@@ -556,6 +677,21 @@ final class AppState: ObservableObject {
         guard !isSnoozed else { return }
         guard settings.alertBannerEnabled else { return }
         alertManager.postBanner()
+    }
+
+    private func applyPowerState(_ state: PowerState) {
+        let interval: CFTimeInterval
+        switch state {
+        case .lowPower:
+            interval = frameIntervalLowPower
+        case .onBattery:
+            interval = frameIntervalOnBattery
+        case .pluggedIn:
+            interval = frameIntervalOnAC
+        }
+        powerState = state
+        currentFrameInterval = interval
+        detectionEngine.setFrameInterval(interval)
     }
 }
 

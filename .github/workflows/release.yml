@@ -33,14 +33,7 @@ jobs:
       - name: Generate project
         run: scripts/gen_project.sh
       - name: Build app (Release)
-        run: |
-          xcodebuild \
-            -project HandsOff.xcodeproj \
-            -scheme HandsOff \
-            -configuration Release \
-            -destination 'platform=macOS' \
-            -derivedDataPath .build \
-            build
+        run: scripts/build.sh RELEASE
       - name: Package artifacts
         run: |
           APP_PATH=".build/Build/Products/Release/HandsOff.app"

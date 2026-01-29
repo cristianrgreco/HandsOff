@@ -4,6 +4,7 @@ import CoreImage
 import Foundation
 import QuartzCore
 import Vision
+import os
 
 struct DetectionSettings {
     let cameraID: String?
@@ -295,7 +296,7 @@ struct VisionDetectionProvider {
     let confidenceThreshold: Float
 
     func detect(pixelBuffer: CVPixelBuffer) -> DetectionData? {
-        let faceRequest = VNDetectFaceLandmarksRequest()
+        let faceRequest = VNDetectFaceRectanglesRequest()
         let handRequest = VNDetectHumanHandPoseRequest()
         handRequest.maximumHandCount = 2
 
@@ -345,21 +346,22 @@ final class DetectionEngine: NSObject {
     private var sessionObservers: [NSObjectProtocol] = []
 
     private var isConfigured = false
-    private var isRunning = false
+    private let isRunningLock = OSAllocatedUnfairLock(initialState: false)
     private var isProcessing = false
     private var isInterrupted = false
-    private var previewEnabled = false
+    private let previewEnabledLock = OSAllocatedUnfairLock(initialState: false)
     private var activeCameraID: String?
     private var lastFaceBoundingBox: CGRect?
     private var lastFaceTime: CFTimeInterval = 0
-    private var lastFrameTime: CFTimeInterval = 0
+    private let lastFrameTimeLock = OSAllocatedUnfairLock(initialState: CFTimeInterval(0))
     private var triggerState = DetectionTriggerState()
     private let ciContext = CIContext()
     private let sensitivity: Sensitivity = .low
 
     private let confidenceThreshold: Float = 0.75
     private let hairTopMargin: CGFloat = 0.25
-    private let frameInterval: CFTimeInterval = 1.0 / 12.0
+    private let frameIntervalLock = OSAllocatedUnfairLock(initialState: CFTimeInterval(1.0 / 10.0))
+    private let sessionPresetValue: AVCaptureSession.Preset = .low
     private let staleFrameThreshold: CFTimeInterval = 1.0
     private let faceCacheDuration: CFTimeInterval = 2.0
 #if DEBUG
@@ -395,6 +397,26 @@ final class DetectionEngine: NSObject {
         super.init()
     }
 
+    private var isRunning: Bool {
+        get { isRunningLock.withLock { $0 } }
+        set { isRunningLock.withLock { $0 = newValue } }
+    }
+
+    private var previewEnabled: Bool {
+        get { previewEnabledLock.withLock { $0 } }
+        set { previewEnabledLock.withLock { $0 = newValue } }
+    }
+
+    private var lastFrameTime: CFTimeInterval {
+        get { lastFrameTimeLock.withLock { $0 } }
+        set { lastFrameTimeLock.withLock { $0 = newValue } }
+    }
+
+    private var frameIntervalValue: CFTimeInterval {
+        get { frameIntervalLock.withLock { $0 } }
+        set { frameIntervalLock.withLock { $0 = newValue } }
+    }
+
     func setObservationHandler(_ handler: @escaping (DetectionObservation) -> Void) {
         onObservation = handler
     }
@@ -412,9 +434,15 @@ final class DetectionEngine: NSObject {
     }
 
     func setPreviewEnabled(_ enabled: Bool) {
-        visionQueue.async {
-            self.previewEnabled = enabled
+        previewEnabled = enabled
+        sessionQueue.async { [weak self] in
+            guard let self, self.isConfigured else { return }
+            self.updateSessionPreset(previewEnabled: enabled)
         }
+    }
+
+    func setFrameInterval(_ interval: CFTimeInterval) {
+        frameIntervalValue = max(0.05, interval)
     }
 
     func start(completion: @escaping (DetectionStartError?) -> Void) {
@@ -483,7 +511,7 @@ final class DetectionEngine: NSObject {
 
         session.beginConfiguration()
         defer { session.commitConfiguration() }
-        session.sessionPreset = .medium
+        session.sessionPreset = sessionPreset(previewEnabled: previewEnabled)
 
         session.inputs.forEach { session.removeInput($0) }
         session.outputs.forEach { session.removeOutput($0) }
@@ -637,6 +665,7 @@ final class DetectionEngine: NSObject {
         let now = CACurrentMediaTime()
         let previewIsEnabled = previewEnabled
 
+        let frameInterval = frameInterval(previewEnabled: previewIsEnabled)
         let throttle = DetectionFrameThrottle.evaluate(
             now: now,
             lastFrameTime: lastFrameTime,
@@ -651,7 +680,6 @@ final class DetectionEngine: NSObject {
             lastFrameTime = throttle.newLastFrameTime
         }
         if previewIsEnabled {
-            // When the preview is open, render every incoming frame.
             guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
             emitPreview(pixelBuffer)
             guard shouldProcess else { return }
@@ -663,6 +691,23 @@ final class DetectionEngine: NSObject {
         guard shouldProcess else { return }
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         detect(on: pixelBuffer, now: now)
+    }
+
+    private func frameInterval(previewEnabled _: Bool) -> CFTimeInterval {
+        frameIntervalValue
+    }
+
+
+    private func sessionPreset(previewEnabled: Bool) -> AVCaptureSession.Preset {
+        sessionPresetValue
+    }
+
+    private func updateSessionPreset(previewEnabled: Bool) {
+        let desiredPreset = sessionPreset(previewEnabled: previewEnabled)
+        guard session.sessionPreset != desiredPreset else { return }
+        session.beginConfiguration()
+        session.sessionPreset = desiredPreset
+        session.commitConfiguration()
     }
 
     private func updateHit(_ hit: Bool) {
@@ -881,6 +926,14 @@ extension DetectionEngine {
 
     func _testSetFrameHandlerImmediate(_ handler: @escaping () -> Void) {
         onFrame = handler
+    }
+
+    func _testFrameInterval(previewEnabled: Bool) -> CFTimeInterval {
+        frameInterval(previewEnabled: previewEnabled)
+    }
+
+    func _testSessionPreset(previewEnabled: Bool) -> AVCaptureSession.Preset {
+        sessionPreset(previewEnabled: previewEnabled)
     }
 
     func _testHandleRuntimeError(_ notification: Notification) {

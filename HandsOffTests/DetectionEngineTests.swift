@@ -60,7 +60,7 @@ final class DetectionEngineTests: XCTestCase {
         XCTAssertEqual(session.commitConfigurationCount, 1)
         XCTAssertEqual(session.inputs.count, 1)
         XCTAssertEqual(session.outputs.count, 1)
-        XCTAssertEqual(session.sessionPreset, .medium)
+        XCTAssertEqual(session.sessionPreset, .low)
     }
 
     func testProcessDetectionTriggersOnHit() {
@@ -202,6 +202,28 @@ final class DetectionEngineTests: XCTestCase {
         engine._testProcessFrame(sampleBuffer)
 
         wait(for: [observationExpectation], timeout: 0.2)
+    }
+
+    func testFrameIntervalIsSameForPreviewAndIdle() {
+        let engine = makeEngine()
+
+        XCTAssertEqual(engine._testFrameInterval(previewEnabled: true), 1.0 / 10.0, accuracy: 0.0001)
+        XCTAssertEqual(engine._testFrameInterval(previewEnabled: false), 1.0 / 10.0, accuracy: 0.0001)
+    }
+
+    func testSessionPresetIsLowForPreviewAndIdle() {
+        let engine = makeEngine()
+
+        XCTAssertEqual(engine._testSessionPreset(previewEnabled: true), .low)
+        XCTAssertEqual(engine._testSessionPreset(previewEnabled: false), .low)
+    }
+
+    func testSetFrameIntervalUpdatesThrottle() {
+        let engine = makeEngine()
+
+        engine.setFrameInterval(1.0 / 2.0)
+
+        XCTAssertEqual(engine._testFrameInterval(previewEnabled: true), 1.0 / 2.0, accuracy: 0.0001)
     }
 
     func testHandleSessionMonitorTickRestartsWhenSessionNotRunning() {
