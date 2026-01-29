@@ -138,7 +138,8 @@ struct MenuBarView: View {
         MenuBarStatus.headerSymbolName(
             isMonitoring: appState.isMonitoring,
             isStarting: appState.isStarting,
-            isAwaitingCamera: appState.isAwaitingCamera
+            isAwaitingCamera: appState.isAwaitingCamera,
+            isSnoozed: appState.isSnoozed
         )
     }
 

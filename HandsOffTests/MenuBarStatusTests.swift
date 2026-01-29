@@ -156,15 +156,26 @@ final class MenuBarStatusTests: XCTestCase {
             MenuBarStatus.headerSymbolName(
                 isMonitoring: true,
                 isStarting: false,
-                isAwaitingCamera: false
+                isAwaitingCamera: false,
+                isSnoozed: false
             ),
             "hand.raised.fill"
         )
         XCTAssertEqual(
             MenuBarStatus.headerSymbolName(
+                isMonitoring: true,
+                isStarting: false,
+                isAwaitingCamera: false,
+                isSnoozed: true
+            ),
+            "hand.raised.slash.fill"
+        )
+        XCTAssertEqual(
+            MenuBarStatus.headerSymbolName(
                 isMonitoring: false,
                 isStarting: true,
-                isAwaitingCamera: false
+                isAwaitingCamera: false,
+                isSnoozed: false
             ),
             "hand.raised"
         )
