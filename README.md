@@ -1,8 +1,8 @@
 # Hands Off (Mac)
 
-Hands Off is a macOS **menu bar** app that detects when your hand approaches your face and nudges you to stop touching your face.
+Hands Off is a macOS **menu bar** app that detects when your hand approaches your face and nudges you to stop.
 
-https://github.com/user-attachments/assets/54b25e97-0729-4edf-95ea-c16abf4e68fd
+https://github.com/user-attachments/assets/1e74f34b-ca11-4589-bf58-7ac76c2fe794
 
 ## What it does
 - Runs in the menu bar and monitors when enabled.
