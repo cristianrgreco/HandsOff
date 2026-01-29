@@ -1,5 +1,5 @@
 App code changes:
-- Run `scripts/test.sh`, then `scripts/build_and_run.sh`.
+- Run `scripts/test.sh`, then `scripts/build_and_run.sh DEBUG|RELEASE`.
 - Skip this for test-only runs or documentation-only changes.
 - Add or update tests to cover new behaviors.
 - Offer to run `scripts/build_and_run.sh` after app changes.

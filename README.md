@@ -28,12 +28,10 @@ Build requirements (only needed when building from source):
 
 Scripts:
 - `./scripts/gen_project.sh` — generate the Xcode project
-- `./scripts/build.sh` — build Debug
-- `./scripts/run.sh` — run Debug
-- `./scripts/build_and_run.sh` — build + relaunch Debug
-- `./scripts/build_release.sh` — build Release
-- `./scripts/run_release.sh` — run Release
-- `./scripts/build_and_run_release.sh` — build + relaunch Release
+- `./scripts/build.sh DEBUG|RELEASE` — build Debug or Release
+- `./scripts/run.sh DEBUG|RELEASE` — run Debug or Release
+- `./scripts/relaunch.sh DEBUG|RELEASE` — relaunch Debug or Release
+- `./scripts/build_and_run.sh DEBUG|RELEASE` — build + relaunch Debug or Release
 - `./scripts/test.sh` — run tests
 
 ## Notes

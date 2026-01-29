@@ -8,7 +8,7 @@
 
 # Bugs
 
-- 
+- Try same as posturr, 10 fps but low resolution.
 
 # Testing
 
