@@ -274,6 +274,7 @@ extension AppStateDependencies {
             userDefaults: defaults,
             notificationCenter: .default,
             workspaceNotificationCenter: .default,
+            distributedNotificationCenter: DistributedNotificationCenter.default(),
             powerStateMonitor: StaticPowerStateMonitor(state: config.powerState),
             timerDriver: .live,
             now: Date.init,
