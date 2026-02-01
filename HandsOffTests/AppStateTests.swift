@@ -638,6 +638,64 @@ final class AppStateTests: XCTestCase {
         XCTAssertEqual(harness.detectionEngine.startCount, 2)
     }
 
+    func testSessionResignActiveStopsMonitoringAndMarksResume() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
+
+        XCTAssertFalse(appState.isMonitoring)
+        XCTAssertEqual(harness.detectionEngine.stopCount, 1)
+        XCTAssertTrue(harness.defaults.bool(forKey: "state.resumeMonitoringOnLaunch"))
+    }
+
+    func testSessionBecomeActiveResumesMonitoringAfterDelay() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
+
+        harness.workspaceNotificationCenter.post(name: NSWorkspace.sessionDidBecomeActiveNotification, object: nil)
+
+        XCTAssertEqual(harness.timerDriver.makeOneShotCount, 1)
+        harness.timerDriver.scheduled.last?.fire()
+        XCTAssertEqual(harness.detectionEngine.startCount, 2)
+    }
+
+    func testScreenLockStopsMonitoringAndMarksResume() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+
+        harness.distributedNotificationCenter.post(name: Notification.Name("com.apple.screenIsLocked"), object: nil)
+
+        XCTAssertFalse(appState.isMonitoring)
+        XCTAssertEqual(harness.detectionEngine.stopCount, 1)
+        XCTAssertTrue(harness.defaults.bool(forKey: "state.resumeMonitoringOnLaunch"))
+    }
+
+    func testScreenUnlockResumesMonitoringAfterDelay() {
+        let harness = makeHarness()
+        let appState = harness.appState
+
+        appState.startMonitoring()
+        harness.detectionEngine.completeStart(with: nil)
+        harness.distributedNotificationCenter.post(name: Notification.Name("com.apple.screenIsLocked"), object: nil)
+
+        harness.distributedNotificationCenter.post(name: Notification.Name("com.apple.screenIsUnlocked"), object: nil)
+
+        XCTAssertEqual(harness.timerDriver.makeOneShotCount, 1)
+        harness.timerDriver.scheduled.last?.fire()
+        XCTAssertEqual(harness.detectionEngine.startCount, 2)
+    }
+
     func testWakeGracePeriodSuppressesCameraStallAlert() {
         let harness = makeHarness()
         let appState = harness.appState
@@ -666,6 +724,7 @@ final class AppStateTests: XCTestCase {
         let detectionEngine: TestDetectionEngine
         let clock: TestClockRef
         let workspaceNotificationCenter: NotificationCenter
+        let distributedNotificationCenter: NotificationCenter
         let defaults: UserDefaults
         let timerDriver: TestTimerDriver
         let activityCapture: ActivityCapture
@@ -718,6 +777,7 @@ final class AppStateTests: XCTestCase {
         let clock = TestClockRef(now: Date(timeIntervalSince1970: 1_700_000_000), mediaTime: 0)
         let notificationCenter = NotificationCenter()
         let workspaceNotificationCenter = NotificationCenter()
+        let distributedNotificationCenter = NotificationCenter()
         let timerDriverCapture = TestTimerDriver()
         let timerDriver = timerDriverCapture.makeDriver()
         let activityToken = NSObject()
@@ -747,6 +807,7 @@ final class AppStateTests: XCTestCase {
             userDefaults: resolvedDefaults,
             notificationCenter: notificationCenter,
             workspaceNotificationCenter: workspaceNotificationCenter,
+            distributedNotificationCenter: distributedNotificationCenter,
             powerStateMonitor: resolvedPowerStateMonitor,
             timerDriver: timerDriver,
             now: { clock.now },
@@ -774,6 +835,7 @@ final class AppStateTests: XCTestCase {
             detectionEngine: detectionEngine,
             clock: clock,
             workspaceNotificationCenter: workspaceNotificationCenter,
+            distributedNotificationCenter: distributedNotificationCenter,
             defaults: resolvedDefaults,
             timerDriver: timerDriverCapture,
             activityCapture: activityCapture

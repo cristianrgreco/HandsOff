@@ -92,6 +92,7 @@ struct AppStateDependencies {
     var userDefaults: UserDefaults
     var notificationCenter: NotificationCenter
     var workspaceNotificationCenter: NotificationCenter
+    var distributedNotificationCenter: NotificationCenter
     var powerStateMonitor: PowerStateObserving
     var timerDriver: TimerDriver
     var now: () -> Date
@@ -124,6 +125,7 @@ struct AppStateDependencies {
             userDefaults: .standard,
             notificationCenter: .default,
             workspaceNotificationCenter: NSWorkspace.shared.notificationCenter,
+            distributedNotificationCenter: DistributedNotificationCenter.default(),
             powerStateMonitor: PowerStateMonitor(),
             timerDriver: .live,
             now: Date.init,

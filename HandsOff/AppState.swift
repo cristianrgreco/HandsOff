@@ -29,6 +29,7 @@ final class AppState: ObservableObject {
     private let stateDefaults: UserDefaults
     private let notificationCenter: NotificationCenter
     private let workspaceNotificationCenter: NotificationCenter
+    private let distributedNotificationCenter: NotificationCenter
     private let powerStateMonitor: PowerStateObserving
     private let timerDriver: TimerDriver
     private let now: () -> Date
@@ -46,6 +47,7 @@ final class AppState: ObservableObject {
     private var touchReleaseStart: CFTimeInterval?
     private var snoozeTimer: Timer?
     private var resumeAfterWakeTimer: Timer?
+    private var resumeAfterSessionTimer: Timer?
     private var cameraRestartTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     private let touchReleaseDebounce: CFTimeInterval = 0.3
@@ -53,6 +55,7 @@ final class AppState: ObservableObject {
     private var resumeMonitoringWhenCameraAvailable = false
     private var deviceObservers: [NSObjectProtocol] = []
     private var workspaceObservers: [NSObjectProtocol] = []
+    private var distributedObservers: [NSObjectProtocol] = []
     private var frameStallTimer: Timer?
     private var lastFrameTime: CFTimeInterval = 0
     private let frameStallThreshold: CFTimeInterval = 1.2
@@ -62,6 +65,7 @@ final class AppState: ObservableObject {
     private var isSoundPlaying = false
     private var startRequestID: UUID?
     private var monitoringBeforeSleep = false
+    private var monitoringBeforeUserInactive = false
     private var lastWakeTime: CFTimeInterval?
     private var lastCameraAuthorizationStatus: AVAuthorizationStatus
     private var pendingAutoStartAfterPermission = false
@@ -124,6 +128,7 @@ final class AppState: ObservableObject {
         self.stateDefaults = dependencies.userDefaults
         self.notificationCenter = dependencies.notificationCenter
         self.workspaceNotificationCenter = dependencies.workspaceNotificationCenter
+        self.distributedNotificationCenter = dependencies.distributedNotificationCenter
         self.powerStateMonitor = dependencies.powerStateMonitor
         self.timerDriver = dependencies.timerDriver
         self.now = dependencies.now
@@ -258,7 +263,42 @@ final class AppState: ObservableObject {
                 self?.handleDidWake()
             }
         )
-
+        workspaceObservers.append(
+            workspaceNotificationCenter.addObserver(
+                forName: NSWorkspace.sessionDidResignActiveNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.handleSessionDidResignActive()
+            }
+        )
+        workspaceObservers.append(
+            workspaceNotificationCenter.addObserver(
+                forName: NSWorkspace.sessionDidBecomeActiveNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.handleSessionDidBecomeActive()
+            }
+        )
+        distributedObservers.append(
+            distributedNotificationCenter.addObserver(
+                forName: Self.screenLockedNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.handleScreenLocked()
+            }
+        )
+        distributedObservers.append(
+            distributedNotificationCenter.addObserver(
+                forName: Self.screenUnlockedNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                self?.handleScreenUnlocked()
+            }
+        )
         settings.$cameraID
             .dropFirst()
             .sink { [weak self] _ in
@@ -286,6 +326,7 @@ final class AppState: ObservableObject {
     deinit {
         deviceObservers.forEach { notificationCenter.removeObserver($0) }
         workspaceObservers.forEach { workspaceNotificationCenter.removeObserver($0) }
+        distributedObservers.forEach { distributedNotificationCenter.removeObserver($0) }
     }
 
     private func syncCameraSelection() {
@@ -537,6 +578,46 @@ final class AppState: ObservableObject {
         resumeAfterWakeTimer = timer
     }
 
+    private func handleSessionDidResignActive() {
+        handleUserSessionBecameInactive()
+    }
+
+    private func handleSessionDidBecomeActive() {
+        handleUserSessionBecameActive()
+    }
+
+    private func handleScreenLocked() {
+        handleUserSessionBecameInactive()
+    }
+
+    private func handleScreenUnlocked() {
+        handleUserSessionBecameActive()
+    }
+
+    private func handleUserSessionBecameInactive() {
+        let wasActive = isMonitoring || isStarting
+        if wasActive {
+            monitoringBeforeUserInactive = true
+        }
+        resumeAfterSessionTimer?.invalidate()
+        resumeAfterSessionTimer = nil
+        guard wasActive else { return }
+        stopMonitoring()
+        stateDefaults.set(true, forKey: Self.resumeMonitoringKey)
+    }
+
+    private func handleUserSessionBecameActive() {
+        lastWakeTime = mediaTime()
+        guard monitoringBeforeUserInactive else { return }
+        monitoringBeforeUserInactive = false
+        let resumeDate = now().addingTimeInterval(wakeResumeDelay)
+        let timer = timerDriver.makeOneShot(resumeDate) { [weak self] in
+            self?.startMonitoring()
+        }
+        timerDriver.schedule(timer)
+        resumeAfterSessionTimer = timer
+    }
+
     private func presentCameraStallAlert() {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
@@ -678,6 +759,8 @@ final class AppState: ObservableObject {
 
     private static let resumeMonitoringKey = "state.resumeMonitoringOnLaunch"
     private static let legacyResumeMonitoringKey = "settings.resumeMonitoringOnLaunch"
+    private static let screenLockedNotification = Notification.Name("com.apple.screenIsLocked")
+    private static let screenUnlockedNotification = Notification.Name("com.apple.screenIsUnlocked")
 
     func openCameraSettings() {
         openCameraSettingsHandler()

@@ -14,6 +14,7 @@ Project config:
 
 Testing process:
 - Primary test run: `scripts/test.sh` (runs unit tests + UI tests via the HandsOffTests scheme).
+- When running `scripts/build_and_run.sh` via tool calls, set a longer timeout (e.g., 5-10 minutes).
 - When running `scripts/test.sh` via tool calls, set a longer timeout (e.g., 5-10 minutes).
 - Coverage report: `xcrun xccov view --report --json .build/Logs/Test/<latest>.xcresult` (or `--report` for human-readable output).
 - If tests fail, capture the failing xcresult path from the `scripts/test.sh` output and use it for coverage/logs.
